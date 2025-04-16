@@ -17,9 +17,16 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#1d3748]">
       <Navbar toggleSidebar={toggleSidebar} />
-      <div className="flex">
+      <div className="flex relative">
+        {/* Overlay when sidebar is open */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-20 md:hidden" 
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
         <Sidebar isOpen={sidebarOpen} />
-        <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <main className="flex-1 transition-all duration-300">
           {children}
         </main>
       </div>
