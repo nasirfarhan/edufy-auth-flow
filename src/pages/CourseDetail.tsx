@@ -1,197 +1,252 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Award, ChevronUp, Star, Trophy, User } from "lucide-react";
+import { 
+  Sword, 
+  Shield, 
+  Trophy, 
+  ChevronUp, 
+  Sparkles, 
+  Star, 
+  Zap, 
+  BookOpen 
+} from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+
+const AnimatedText = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <span className="animate-pulse font-bold text-red-500 flex items-center gap-2">
+      <Sparkles size={20} className="text-yellow-400" />
+      {children}
+      <Sparkles size={20} className="text-yellow-400" />
+    </span>
+  );
+};
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user } = useAuth();
   const [shopOpen, setShopOpen] = useState(false);
 
-  // Mock course data based on courseId
-  const courseData = {
-    title: courseId?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Unknown Course",
-    description: "This advanced course covers all aspects of this technology from basic concepts to expert techniques. You'll learn through hands-on projects and challenging exercises designed to build your skills progressively.",
-    tasks: [
-      { id: 1, name: "Introduction", completed: true, checkpoint: "Basic House", tier: "beginner" },
-      { id: 2, name: "Core Concepts", completed: true, checkpoint: "Basic House", tier: "beginner" },
-      { id: 3, name: "Advanced Techniques", completed: false, checkpoint: "Stone House", tier: "intermediate" },
-      { id: 4, name: "Project Implementation", completed: false, checkpoint: "Stone House", tier: "intermediate" },
-      { id: 5, name: "Expert Challenges", completed: false, checkpoint: "Brick House", tier: "advanced" },
-    ],
-    bossInfo: {
-      name: "Final Challenge Boss",
-      image: "https://placehold.co/200x200?text=Boss",
-      xpReward: 500,
-      pointsReward: 250
-    }
-  };
-
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 relative">
-        {/* Player Info Section */}
-        <div className="flex justify-between mb-6">
-          <div className="flex flex-col items-center bg-[#172c3a] p-4 rounded-lg shadow-lg border border-blue-800/30 w-48">
-            <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-2">
-              <User className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-white">{user?.username}</h3>
-            
-            <div className="mt-2 w-full">
-              <div className="flex items-center mb-1">
-                <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                <span className="text-sm text-blue-300">XP: 1,250</span>
+      <div className="flex flex-col min-h-screen bg-[#1d3748] relative">
+        <div className="flex flex-1">
+          {/* Main Quest Area */}
+          <main className="w-3/4 overflow-y-auto p-6">
+            <header className="text-center mb-12">
+              <h1 className="text-3xl font-bold text-yellow-400">
+                {courseId?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              </h1>
+              <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
+                Embark on an epic journey to master this subject! Battle through challenges, 
+                conquer bosses, and level up your coding skills. This course transforms complex 
+                concepts into engaging quests that will make you a coding champion.
+              </p>
+            </header>
+
+            {/* Player Stats Section */}
+            <div className="bg-[#2e4459] rounded-lg p-4 mb-12 inline-block border border-blue-400/30">
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-yellow-400">{user?.username}</h3>
+                <div className="flex items-center justify-center mt-2">
+                  <Zap className="text-yellow-400 mr-2" size={16} />
+                  <span className="text-gray-300">XP: 1,250/2,000</span>
+                </div>
+                <div className="flex items-center justify-center mt-1">
+                  <Star className="text-blue-400 mr-2" size={16} />
+                  <span className="text-gray-300">Points: 350</span>
+                </div>
+                <div className="flex items-center justify-center mt-1">
+                  <BookOpen className="text-green-400 mr-2" size={16} />
+                  <span className="text-gray-300">Level: 7</span>
+                </div>
               </div>
-              
-              <div className="flex items-center mb-1">
-                <Trophy className="w-4 h-4 text-yellow-400 mr-1" />
-                <span className="text-sm text-blue-300">Points: 750</span>
+            </div>
+
+            {/* Learning Paths */}
+            <div className="relative">
+              {/* Beginner's Path */}
+              <div className="relative mb-32">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Beginner's Path</h2>
+                <svg width="100%" height="180" viewBox="0 0 1000 180" className="overflow-visible">
+                  <path
+                    d="M0,90 C200,90 150,-30 300,90 C450,210 500,90 650,90 C800,90 750,-30 950,90 L1000,90 L1000,120 C800,120 850,240 650,120 C450,0 400,120 300,120 C200,120 150,240 0,120 Z"
+                    fill="#b87f4c"
+                    stroke="#8b5e3c"
+                    strokeWidth="2"
+                  />
+                  
+                  {[100, 300, 500, 700, 900].map((x, index) => {
+                    const yPos = index % 2 === 0 ? 60 : 120;
+                    return (
+                      <g key={index} transform={`translate(${x},${yPos})`}>
+                        {index > 0 && (
+                          <g transform="translate(-30,0)">
+                            <rect x="-8" y="-8" width="16" height="16" fill="#22c55e" stroke="#16a34a" strokeWidth="1" transform="rotate(15)" />
+                            <rect x="8" y="-8" width="16" height="16" fill="#16a34a" stroke="#15803d" strokeWidth="1" transform="rotate(-15)" />
+                          </g>
+                        )}
+                        
+                        <g>
+                          <rect x="-15" y="-10" width="30" height="35" fill="#94a3b8" stroke="#64748b" strokeWidth="2" />
+                          <polygon points="0,-20 -20,-10 20,-10" fill="#94a3b8" stroke="#64748b" strokeWidth="2" />
+                          <rect x="-5" y="5" width="10" height="20" fill="#000" opacity="0.4" />
+                        </g>
+                      </g>
+                    );
+                  })}
+                  
+                  <circle cx="30" cy="90" r="20" fill="#3b82f6" />
+                  <text x="30" y="95" fontSize="20" textAnchor="middle" fill="white">🧙‍♂️</text>
+                </svg>
               </div>
-              
-              <div className="flex items-center">
-                <Award className="w-4 h-4 text-yellow-400 mr-1" />
-                <span className="text-sm text-blue-300">Level: 3</span>
+
+              {/* Warrior's Trail */}
+              <div className="relative mb-32">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Warrior's Trail</h2>
+                <svg width="100%" height="180" viewBox="0 0 1000 180" className="overflow-visible">
+                  <path
+                    d="M-50,120 C0,120 0,90 50,90"
+                    fill="none"
+                    stroke="#78716c"
+                    strokeWidth="30"
+                  />
+                  
+                  <path
+                    d="M0,90 C200,30 150,150 300,90 C450,30 500,150 650,90 C800,30 750,150 950,90 L1000,90 L1000,120 C800,180 850,60 650,120 C450,180 400,60 300,120 C200,180 150,60 0,120 Z"
+                    fill="#78716c"
+                    stroke="#57534e"
+                    strokeWidth="2"
+                  />
+                  
+                  {[100, 300, 500, 700, 900].map((x, index) => {
+                    const yPos = index % 2 === 0 ? 120 : 60;
+                    return (
+                      <g key={index} transform={`translate(${x},${yPos})`}>
+                        {index > 0 && (
+                          <rect x="-40" y="-8" width="24" height="8" fill="#6d523c" stroke="#523d2c" strokeWidth="1" transform="rotate(90)" />
+                        )}
+                        
+                        <g>
+                          <rect x="-15" y="-10" width="30" height="35" fill="#d6c0a7" stroke="#b39b82" strokeWidth="2" />
+                          <polygon points="0,-20 -20,-10 20,-10" fill="#d6c0a7" stroke="#b39b82" strokeWidth="2" />
+                          <rect x="-5" y="5" width="10" height="20" fill="#000" opacity="0.4" />
+                        </g>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {/* Champion's Road */}
+              <div className="relative mb-12">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Champion's Road</h2>
+                <svg width="100%" height="180" viewBox="0 0 1000 180" className="overflow-visible">
+                  <path
+                    d="M-50,120 C0,120 0,90 50,90"
+                    fill="none"
+                    stroke="#1f2937"
+                    strokeWidth="30"
+                  />
+                  
+                  <path
+                    d="M0,90 C200,150 150,30 300,90 C450,150 500,30 650,90 C800,150 750,30 950,90 L1000,90 L1000,120 C800,60 850,180 650,120 C450,60 400,180 300,120 C200,60 150,180 0,120 Z"
+                    fill="#1f2937"
+                    stroke="#111827"
+                    strokeWidth="2"
+                  />
+                  
+                  {[100, 300, 500, 700, 900].map((x, index) => {
+                    const yPos = index % 2 === 0 ? 60 : 120;
+                    return (
+                      <g key={index} transform={`translate(${x},${yPos})`}>
+                        {index > 0 && (
+                          <rect x="-40" y="-16" width="24" height="24" fill="#4b5563" stroke="#1f2937" strokeWidth="2" rx="4" />
+                        )}
+                        
+                        <g>
+                          <rect x="-15" y="-10" width="30" height="35" fill="#b91c1c" stroke="#991b1b" strokeWidth="2" />
+                          <polygon points="0,-20 -20,-10 20,-10" fill="#b91c1c" stroke="#991b1b" strokeWidth="2" />
+                          <rect x="-5" y="5" width="10" height="20" fill="#000" opacity="0.4" />
+                        </g>
+                      </g>
+                    );
+                  })}
+                </svg>
               </div>
             </div>
-          </div>
-          
-          {/* Course Header */}
-          <div className="flex-1 mx-10">
-            <h1 className="text-3xl font-bold text-white mb-3">{courseData.title}</h1>
-            <p className="text-gray-300 mb-6 max-w-2xl line-clamp-4">{courseData.description}</p>
-          </div>
-        </div>
-        
-        <div className="flex mt-6">
-          {/* Learning Path Section */}
-          <div className="w-3/4 pr-6 max-h-[70vh] overflow-y-auto scrollbar-none">
-            <h2 className="text-xl font-bold text-white mb-4">Learning Path</h2>
-            
-            <div className="relative pl-10">
-              {/* Path line */}
-              <div className="absolute left-5 top-0 bottom-0 w-1 bg-gradient-to-b from-green-500 via-yellow-500 to-red-500"></div>
-              
-              {courseData.tasks.map((task, index) => {
-                let roadClass = "";
-                let checkpointClass = "";
-                let obstacleClass = "";
-                
-                if (task.tier === "beginner") {
-                  roadClass = "bg-yellow-900/50";
-                  checkpointClass = "bg-stone-300";
-                  obstacleClass = "bg-green-700";
-                } else if (task.tier === "intermediate") {
-                  roadClass = "bg-stone-600/70";
-                  checkpointClass = "bg-stone-400";
-                  obstacleClass = "bg-brown-500";
-                } else if (task.tier === "advanced") {
-                  roadClass = "bg-stone-800";
-                  checkpointClass = "bg-stone-600";
-                  obstacleClass = "bg-gray-700";
-                }
-                
-                return (
-                  <div key={task.id} className="mb-10 relative">
-                    {/* Checkpoint */}
-                    <div className={`absolute left-0 top-0 transform -translate-x-1/2 w-10 h-10 ${checkpointClass} rounded-full flex items-center justify-center z-10 ${task.completed ? 'border-2 border-green-500' : ''}`}>
-                      {task.completed ? (
-                        <span className="text-green-500 font-bold">✓</span>
-                      ) : (
-                        <span className="text-white font-bold">{task.id}</span>
-                      )}
-                    </div>
-                    
-                    {/* Task Card */}
-                    <div className={`ml-8 ${roadClass} p-4 rounded-lg shadow-lg border border-blue-800/30`}>
-                      <h3 className="text-lg font-semibold text-white">{task.name}</h3>
-                      <p className="text-sm text-gray-300 mb-2">Checkpoint: {task.checkpoint}</p>
-                      
-                      {!task.completed && (
-                        <div className={`mt-2 h-4 w-24 ${obstacleClass} rounded-full opacity-70`}></div>
-                      )}
-                      
-                      <Button 
-                        className={`mt-4 ${task.completed ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-                        disabled={index > 0 && !courseData.tasks[index-1].completed}
-                      >
-                        {task.completed ? 'Completed' : 'Start Task'}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
+          </main>
+
           {/* Special Quest Sidebar */}
-          <div className="w-1/4 bg-[#172c3a] border-l border-blue-800 h-[calc(100vh-15rem)]">
-            <div className="p-4">
-              <h2 className="text-xl font-bold text-white border-b border-blue-800 pb-2 mb-4">Special Quest</h2>
-              
-              <div className="animate-pulse">
-                <h3 className="text-2xl font-bold text-red-500 mb-3">Boss Fight</h3>
-              </div>
-              
-              <p className="text-gray-300 mb-4">Defeat The Final Boss to unlock the next Tier.</p>
-              
-              <div className="mb-4 flex justify-center">
-                <img 
-                  src="https://placehold.co/200x200?text=Boss" 
-                  alt="Boss" 
-                  className="w-full max-w-[200px] h-auto rounded-lg shadow-lg border border-red-800"
-                />
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-yellow-300">XP Reward:</span>
-                  <span className="text-sm text-yellow-300 font-bold">{courseData.bossInfo.xpReward}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-yellow-300">Points Reward:</span>
-                  <span className="text-sm text-yellow-300 font-bold">{courseData.bossInfo.pointsReward}</span>
-                </div>
-              </div>
-              
-              <Button 
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
-              >
-                Start Final Boss Fight
-              </Button>
+          <aside className="w-1/4 fixed right-0 top-0 bottom-0 p-6 bg-[#2e4459] border-l border-[#3a5068] flex flex-col">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-yellow-400">
+              <Sword size={24} />
+              Special Quest
+            </h2>
+            
+            <div className="text-center mb-4">
+              <AnimatedText>BOSS FIGHT</AnimatedText>
             </div>
-          </div>
+            
+            <p className="text-sm text-gray-300 mb-4">
+              Defeat The Final Boss to unlock the next Tier.
+            </p>
+            
+            <div className="relative bg-red-900/20 rounded-lg p-4 border border-red-500/30 mb-4 flex justify-center items-center">
+              <div className="w-40 h-40 relative bg-gray-800/80 rounded-full flex items-center justify-center overflow-hidden">
+                <span className="text-6xl">👹</span>
+                <div className="absolute -top-3 -right-3 bg-red-600 w-8 h-8 rounded-full flex items-center justify-center">
+                  <Sword size={16} className="text-white transform rotate-45" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-center mb-4">
+              <div className="bg-yellow-600/20 rounded-lg p-3 border border-yellow-500/30">
+                <Trophy size={24} className="mx-auto text-yellow-400" />
+                <p className="text-lg font-bold text-white">500 XP</p>
+              </div>
+              <div className="bg-blue-600/20 rounded-lg p-3 border border-blue-500/30">
+                <Shield size={24} className="mx-auto text-blue-400" />
+                <p className="text-lg font-bold text-white">100 Points</p>
+              </div>
+            </div>
+            
+            <button className="mt-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg border border-red-500 shadow-lg transition-colors duration-200">
+              Start Final Boss Fight
+            </button>
+          </aside>
         </div>
-        
+
         {/* Shop Drop-up */}
         <Sheet open={shopOpen} onOpenChange={setShopOpen}>
           <SheetTrigger asChild>
-            <Button
+            <button
               className="fixed bottom-4 left-1/2 transform -translate-x-1/2 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg p-2 z-20"
-              variant="outline"
             >
               <ChevronUp className="h-6 w-6 text-white" />
-            </Button>
+            </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="bg-[#172c3a] border-t border-blue-800 text-white">
+          <SheetContent side="bottom" className="bg-[#2e4459] border-t border-blue-800 text-white">
             <div className="p-4">
               <h2 className="text-2xl font-bold mb-4">Shop</h2>
-              <p className="text-gray-300 mb-4">Use your hard-earned points to purchase advanced courses and special items.</p>
+              <p className="text-gray-300 mb-4">Use your hard-earned points to purchase power-ups and special items.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {["Premium Course", "Special Item", "Rare Badge"].map((item, i) => (
-                  <div key={i} className="bg-[#1d3748] p-4 rounded-lg border border-blue-800/30">
-                    <h3 className="text-lg font-semibold mb-2">{item}</h3>
-                    <p className="text-sm text-gray-300 mb-4">A special item that will enhance your learning experience.</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-yellow-300 font-bold">500 Points</span>
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">Buy</Button>
-                    </div>
+                {[
+                  { name: "Power Boost", price: 300, description: "+50% XP gain" },
+                  { name: "Shield", price: 200, description: "Skip one obstacle" },
+                  { name: "Double Points", price: 500, description: "2x points for next quest" }
+                ].map((item) => (
+                  <div key={item.name} className="bg-[#364c63] p-4 rounded-lg">
+                    <h3 className="font-bold">{item.name}</h3>
+                    <p className="text-sm text-gray-300 mb-2">{item.description}</p>
+                    <button className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded w-full">
+                      {item.price} Points
+                    </button>
                   </div>
                 ))}
               </div>
