@@ -18,8 +18,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
   return (
     <aside 
       className={`bg-[#172c3a] fixed h-screen w-64 transform transition-transform duration-300 ease-in-out z-10 
-                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 
-                 ${isOpen ? 'md:relative' : 'md:absolute md:left-0'}`}
+                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
     >
       <div className="p-4">
         <h2 className="text-xl font-bold text-white mb-6">Menu</h2>

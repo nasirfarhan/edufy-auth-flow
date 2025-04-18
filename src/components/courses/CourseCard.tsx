@@ -32,7 +32,7 @@ const CourseCard = ({
   return (
     <>
       <div 
-        className="flex-shrink-0 w-72 bg-[#172c3a] rounded-lg overflow-hidden shadow-lg border border-blue-800/30 hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300 cursor-pointer animate-[pulse_4s_infinite]"
+        className="flex-shrink-0 w-72 bg-[#172c3a] rounded-lg overflow-hidden shadow-lg border border-blue-800/30 hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300 cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="h-32 bg-gradient-to-r from-blue-800 to-purple-700 flex items-center justify-center">
