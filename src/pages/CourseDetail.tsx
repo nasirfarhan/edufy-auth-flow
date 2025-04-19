@@ -227,16 +227,20 @@ const CourseDetail = () => {
   return (
     <div className="flex flex-col min-h-screen bg-[#1d3748] font-['Pixel Sans Serif']">
       <div className="flex flex-1">
-        <div className="w-1/4 p-6">
+        <div className="w-1/4 p-6 flex flex-col space-y-6">
           <PlayerStats 
             name={playerStats.name}
             xp={playerStats.xp}
             points={playerStats.points}
             level={playerStats.level}
           />
+          <SpecialQuest 
+            nextBossLevel={getNextBossLevel()}
+            onBossFight={handleBossFight}
+          />
         </div>
         
-        <main className="w-2/4 overflow-y-auto p-6">
+        <main className="w-3/4 overflow-y-auto p-6">
           <header className="text-center mb-12">
             <h1 className="text-3xl font-bold text-yellow-400">
               {formattedCourseTitle}
@@ -251,7 +255,7 @@ const CourseDetail = () => {
             </p>
           </header>
 
-          <div className="relative mt-16 pl-6 pr-24 pb-24">
+          <div className="relative mt-16 pr-12 pb-24">
             <div className="relative mb-16">
               <h2 className="text-3xl font-bold text-yellow-400 mb-8">Unblooded Path</h2>
               <div className="flex items-center">
@@ -482,13 +486,6 @@ const CourseDetail = () => {
             </div>
           </div>
         </main>
-
-        <aside className="w-1/4 fixed right-0 top-0 bottom-0 p-6 overflow-hidden mt-16">
-          <SpecialQuest 
-            nextBossLevel={getNextBossLevel()}
-            onBossFight={handleBossFight}
-          />
-        </aside>
       </div>
 
       <Sheet open={shopOpen} onOpenChange={setShopOpen}>
