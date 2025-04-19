@@ -1,45 +1,275 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { 
-  Sword, 
-  Shield, 
-  Trophy, 
-  ChevronUp, 
-  Sparkles, 
-  Star, 
-  Zap, 
-  BookOpen 
-} from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChevronUp } from "lucide-react";
+import TaskNode from "@/components/game/TaskNode";
+import BossNode from "@/components/game/BossNode";
+import PlayerStats from "@/components/game/PlayerStats";
+import SpecialQuest from "@/components/game/SpecialQuest";
+import { useToast } from "@/components/ui/use-toast";
+import "../styles/roadmap.css";
 
-const AnimatedText = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <span className="animate-pulse font-bold text-red-500 flex items-center gap-2">
-      <Sparkles size={20} className="text-yellow-400" />
-      {children}
-      <Sparkles size={20} className="text-yellow-400" />
-    </span>
-  );
+// Mock data for tasks and questions
+const tiers = [
+  { id: 1, name: "Unblooded", pathClass: "bronze-path" },
+  { id: 2, name: "Warborn", pathClass: "iron-path" },
+  { id: 3, name: "Doomseeker", pathClass: "steel-path" },
+  { id: 4, name: "Deathless", pathClass: "obsidian-path" },
+  { id: 5, name: "Thrice-Forged", pathClass: "gold-path" },
+];
+
+const generateMockTasks = () => {
+  const tasks = [];
+  
+  // Generate tasks for each tier
+  for (let tier = 0; tier < 5; tier++) {
+    for (let taskNum = 1; taskNum <= 9; taskNum++) {
+      const taskId = tier * 10 + taskNum;
+      
+      // Generate a mock question for this task
+      const options = [
+        `Option A for task ${taskId}`,
+        `Option B for task ${taskId}`,
+        `Option C for task ${taskId}`,
+        `Option D for task ${taskId}`,
+      ];
+      
+      tasks.push({
+        id: taskId,
+        tier: tier,
+        title: `Task ${taskNum} - ${tiers[tier].name}`,
+        content: `This is the content for task ${taskNum} of the ${tiers[tier].name} tier. Here you'll learn about an important concept related to this course.`,
+        question: {
+          text: `Question for task ${taskId}: What is the correct answer?`,
+          options,
+          correctAnswer: Math.floor(Math.random() * 4), // Random correct answer
+        },
+        isCompleted: false,
+        isLocked: tier > 0 || taskNum > 1, // First task of first tier is unlocked
+      });
+    }
+    
+    // Add a boss for each tier
+    const bossId = (tier + 1) * 10;
+    const bossQuestions = [];
+    
+    // Generate 15 questions for the boss
+    for (let i = 0; i < 15; i++) {
+      bossQuestions.push({
+        text: `Boss ${tier + 1} Question ${i + 1}: What is the correct answer?`,
+        options: [
+          `Option A for boss ${tier + 1} question ${i + 1}`,
+          `Option B for boss ${tier + 1} question ${i + 1}`,
+          `Option C for boss ${tier + 1} question ${i + 1}`,
+          `Option D for boss ${tier + 1} question ${i + 1}`,
+        ],
+        correctAnswer: Math.floor(Math.random() * 4), // Random correct answer
+      });
+    }
+    
+    tasks.push({
+      id: bossId,
+      tier: tier,
+      title: `${tiers[tier].name} Final Boss`,
+      questions: bossQuestions,
+      isDefeated: false,
+    });
+  }
+  
+  return tasks;
 };
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user } = useAuth();
+  const { toast } = useToast();
+  
   const [shopOpen, setShopOpen] = useState(false);
+  const [playerStats, setPlayerStats] = useState({
+    name: user?.username || "Player",
+    xp: 0,
+    points: 0,
+    level: 1
+  });
+  
+  const [tasks, setTasks] = useState(generateMockTasks());
+  const [userTier, setUserTier] = useState(0); // Starting at tier 0 (Unblooded)
+  
+  // Compute which boss should be next based on player progress
+  const getNextBossLevel = () => {
+    // Find the next undefeated boss
+    const nextBoss = tasks
+      .filter(task => task.hasOwnProperty('questions')) // Filter for boss nodes
+      .find(boss => !boss.isDefeated);
+    
+    return nextBoss ? tiers[nextBoss.tier].name as 'Unblooded' | 'Warborn' | 'Doomseeker' | 'Deathless' | 'Thrice-Forged' : 'Thrice-Forged';
+  };
+  
+  // Handle task completion
+  const handleTaskComplete = (taskId: number) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, isCompleted: true } 
+          : task
+      )
+    );
+    
+    // Unlock the next task
+    const currentTaskIndex = tasks.findIndex(task => task.id === taskId);
+    if (currentTaskIndex >= 0 && currentTaskIndex < tasks.length - 1) {
+      setTasks(prevTasks => 
+        prevTasks.map((task, index) => 
+          index === currentTaskIndex + 1 
+            ? { ...task, isLocked: false } 
+            : task
+        )
+      );
+    }
+    
+    // Award XP and points
+    const xpGained = 100;
+    const pointsGained = 10;
+    updatePlayerStats(xpGained, pointsGained);
+    
+    toast({
+      title: "Task Completed!",
+      description: `You gained ${xpGained} XP and ${pointsGained} points.`,
+      variant: "default",
+    });
+  };
+  
+  // Handle boss defeat
+  const handleBossComplete = (bossId: number, score: number) => {
+    if (score >= 8) { // At least half correct to defeat the boss
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === bossId 
+            ? { ...task, isDefeated: true } 
+            : task
+        )
+      );
+      
+      // Unlock the first task of the next tier
+      const nextTierFirstTaskId = bossId + 1;
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === nextTierFirstTaskId 
+            ? { ...task, isLocked: false } 
+            : task
+        )
+      );
+      
+      // Update player's tier if this is their current tier boss
+      const bossTier = Math.floor(bossId / 10) - 1;
+      if (userTier === bossTier) {
+        setUserTier(prevTier => prevTier + 1);
+      }
+      
+      // Award XP and points (100 XP and 10 points per correct answer)
+      const xpGained = score * 100;
+      const pointsGained = score * 10;
+      updatePlayerStats(xpGained, pointsGained);
+      
+      toast({
+        title: "Boss Defeated!",
+        description: `You gained ${xpGained} XP and ${pointsGained} points and unlocked the next tier!`,
+        variant: "default",
+      });
+    }
+  };
+  
+  // Update player stats
+  const updatePlayerStats = (xpGained: number, pointsGained: number) => {
+    setPlayerStats(prev => {
+      const newXP = prev.xp + xpGained;
+      const newPoints = prev.points + pointsGained;
+      
+      // Level increases with every 100 points
+      const newLevel = Math.floor(newPoints / 100) + 1;
+      
+      return {
+        ...prev,
+        xp: newXP,
+        points: newPoints,
+        level: newLevel
+      };
+    });
+  };
+  
+  // Handle boss fight button click
+  const handleBossFight = () => {
+    // Find the next undefeated boss
+    const nextBoss = tasks
+      .filter(task => task.hasOwnProperty('questions')) // Filter for boss nodes
+      .find(boss => !boss.isDefeated);
+    
+    if (nextBoss) {
+      // Simulate clicking on the boss node
+      const bossElement = document.getElementById(`boss-${nextBoss.id}`);
+      if (bossElement) {
+        bossElement.click();
+      } else {
+        toast({
+          title: "Boss Not Found",
+          description: "Could not find the next boss to fight.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+  
+  // Spend points for retry
+  const spendPointsForRetry = () => {
+    if (playerStats.points >= 5) {
+      setPlayerStats(prev => ({
+        ...prev,
+        points: prev.points - 5
+      }));
+      
+      return true;
+    } else {
+      toast({
+        title: "Not Enough Points",
+        description: "You need 5 points to retry this question.",
+        variant: "destructive",
+      });
+      
+      return false;
+    }
+  };
 
+  // Format the course title
+  const formattedCourseTitle = courseId 
+    ? courseId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') 
+    : 'Course';
+  
   return (
     <DashboardLayout>
       <div className="flex flex-col min-h-screen bg-[#1d3748] relative">
         <div className="flex flex-1">
-          {/* Main Quest Area */}
-          <main className="w-3/4 overflow-y-auto p-6">
+          {/* Left side with player stats */}
+          <div className="w-1/4 p-6">
+            <PlayerStats 
+              name={playerStats.name}
+              xp={playerStats.xp}
+              points={playerStats.points}
+              level={playerStats.level}
+            />
+          </div>
+          
+          {/* Main game area */}
+          <main className="w-2/4 overflow-y-auto p-6">
             <header className="text-center mb-12">
               <h1 className="text-3xl font-bold text-yellow-400">
-                {courseId?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                {formattedCourseTitle}
               </h1>
+              <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
+                (But You Gotta Fight Through It)
+              </p>
               <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
                 Embark on an epic journey to master this subject! Battle through challenges, 
                 conquer bosses, and level up your coding skills. This course transforms complex 
@@ -47,177 +277,257 @@ const CourseDetail = () => {
               </p>
             </header>
 
-            {/* Player Stats Section */}
-            <div className="bg-[#2e4459] rounded-lg p-4 mb-12 inline-block border border-blue-400/30">
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-yellow-400">{user?.username}</h3>
-                <div className="flex items-center justify-center mt-2">
-                  <Zap className="text-yellow-400 mr-2" size={16} />
-                  <span className="text-gray-300">XP: 1,250/2,000</span>
+            {/* Game Paths */}
+            <div className="relative mt-16 pl-6 pr-24 pb-24">
+              {/* Tier 1: Unblooded (Bronze) */}
+              <div className="relative mb-16">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Unblooded Path</h2>
+                <div className="flex items-center">
+                  {/* Character avatar at start */}
+                  <div className="player-avatar mr-8">
+                    🧙‍♂️
+                  </div>
+                  
+                  {/* Tasks for this tier */}
+                  {tasks
+                    .filter(task => task.tier === 0 && !task.hasOwnProperty('questions'))
+                    .map((task, index) => (
+                      <React.Fragment key={task.id}>
+                        <div 
+                          className="mr-8"
+                          id={`task-${task.id}`}
+                        >
+                          <TaskNode 
+                            id={task.id}
+                            tier="bronze"
+                            title={task.title}
+                            isCompleted={task.isCompleted}
+                            isLocked={task.isLocked}
+                            content={task.content}
+                            question={task.question}
+                            onComplete={handleTaskComplete}
+                          />
+                        </div>
+                        {index < 8 && <div className="bronze-path w-8 h-2 mr-8"></div>}
+                      </React.Fragment>
+                    ))}
                 </div>
-                <div className="flex items-center justify-center mt-1">
-                  <Star className="text-blue-400 mr-2" size={16} />
-                  <span className="text-gray-300">Points: 350</span>
-                </div>
-                <div className="flex items-center justify-center mt-1">
-                  <BookOpen className="text-green-400 mr-2" size={16} />
-                  <span className="text-gray-300">Level: 7</span>
+                
+                {/* Boss node connection */}
+                <div className="flex flex-col items-center ml-20 mt-4">
+                  <div className="bronze-path w-2 h-12"></div>
+                  <div 
+                    id={`boss-${10}`}
+                    className="mt-4"
+                  >
+                    <BossNode 
+                      id={10}
+                      tier="bronze"
+                      title="Unblooded"
+                      isDefeated={tasks.find(t => t.id === 10)?.isDefeated || false}
+                      questions={tasks.find(t => t.id === 10)?.questions || []}
+                      onComplete={handleBossComplete}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Learning Paths */}
-            <div className="relative">
-              {/* Beginner's Path */}
-              <div className="relative mb-32">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Beginner's Path</h2>
-                <svg width="100%" height="180" viewBox="0 0 1000 180" className="overflow-visible">
-                  <path
-                    d="M0,90 C200,90 150,-30 300,90 C450,210 500,90 650,90 C800,90 750,-30 950,90 L1000,90 L1000,120 C800,120 850,240 650,120 C450,0 400,120 300,120 C200,120 150,240 0,120 Z"
-                    fill="#b87f4c"
-                    stroke="#8b5e3c"
-                    strokeWidth="2"
-                  />
-                  
-                  {[100, 300, 500, 700, 900].map((x, index) => {
-                    const yPos = index % 2 === 0 ? 60 : 120;
-                    return (
-                      <g key={index} transform={`translate(${x},${yPos})`}>
-                        {index > 0 && (
-                          <g transform="translate(-30,0)">
-                            <rect x="-8" y="-8" width="16" height="16" fill="#22c55e" stroke="#16a34a" strokeWidth="1" transform="rotate(15)" />
-                            <rect x="8" y="-8" width="16" height="16" fill="#16a34a" stroke="#15803d" strokeWidth="1" transform="rotate(-15)" />
-                          </g>
-                        )}
-                        
-                        <g>
-                          <rect x="-15" y="-10" width="30" height="35" fill="#94a3b8" stroke="#64748b" strokeWidth="2" />
-                          <polygon points="0,-20 -20,-10 20,-10" fill="#94a3b8" stroke="#64748b" strokeWidth="2" />
-                          <rect x="-5" y="5" width="10" height="20" fill="#000" opacity="0.4" />
-                        </g>
-                      </g>
-                    );
-                  })}
-                  
-                  <circle cx="30" cy="90" r="20" fill="#3b82f6" />
-                  <text x="30" y="95" fontSize="20" textAnchor="middle" fill="white">🧙‍♂️</text>
-                </svg>
+              
+              {/* Tier 2: Warborn (Iron) */}
+              <div className="relative mb-16">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Warborn Path</h2>
+                <div className="flex items-center">
+                  {tasks
+                    .filter(task => task.tier === 1 && !task.hasOwnProperty('questions'))
+                    .map((task, index) => (
+                      <React.Fragment key={task.id}>
+                        <div 
+                          className="mr-8"
+                          id={`task-${task.id}`}
+                        >
+                          <TaskNode 
+                            id={task.id}
+                            tier="iron"
+                            title={task.title}
+                            isCompleted={task.isCompleted}
+                            isLocked={task.isLocked}
+                            content={task.content}
+                            question={task.question}
+                            onComplete={handleTaskComplete}
+                          />
+                        </div>
+                        {index < 8 && <div className="iron-path w-8 h-2 mr-8"></div>}
+                      </React.Fragment>
+                    ))}
+                </div>
+                
+                {/* Boss node connection */}
+                <div className="flex flex-col items-center ml-20 mt-4">
+                  <div className="iron-path w-2 h-12"></div>
+                  <div 
+                    id={`boss-${20}`}
+                    className="mt-4"
+                  >
+                    <BossNode 
+                      id={20}
+                      tier="iron"
+                      title="Warborn"
+                      isDefeated={tasks.find(t => t.id === 20)?.isDefeated || false}
+                      questions={tasks.find(t => t.id === 20)?.questions || []}
+                      onComplete={handleBossComplete}
+                    />
+                  </div>
+                </div>
               </div>
-
-              {/* Warrior's Trail */}
-              <div className="relative mb-32">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Warrior's Trail</h2>
-                <svg width="100%" height="180" viewBox="0 0 1000 180" className="overflow-visible">
-                  <path
-                    d="M-50,120 C0,120 0,90 50,90"
-                    fill="none"
-                    stroke="#78716c"
-                    strokeWidth="30"
-                  />
-                  
-                  <path
-                    d="M0,90 C200,30 150,150 300,90 C450,30 500,150 650,90 C800,30 750,150 950,90 L1000,90 L1000,120 C800,180 850,60 650,120 C450,180 400,60 300,120 C200,180 150,60 0,120 Z"
-                    fill="#78716c"
-                    stroke="#57534e"
-                    strokeWidth="2"
-                  />
-                  
-                  {[100, 300, 500, 700, 900].map((x, index) => {
-                    const yPos = index % 2 === 0 ? 120 : 60;
-                    return (
-                      <g key={index} transform={`translate(${x},${yPos})`}>
-                        {index > 0 && (
-                          <rect x="-40" y="-8" width="24" height="8" fill="#6d523c" stroke="#523d2c" strokeWidth="1" transform="rotate(90)" />
-                        )}
-                        
-                        <g>
-                          <rect x="-15" y="-10" width="30" height="35" fill="#d6c0a7" stroke="#b39b82" strokeWidth="2" />
-                          <polygon points="0,-20 -20,-10 20,-10" fill="#d6c0a7" stroke="#b39b82" strokeWidth="2" />
-                          <rect x="-5" y="5" width="10" height="20" fill="#000" opacity="0.4" />
-                        </g>
-                      </g>
-                    );
-                  })}
-                </svg>
+              
+              {/* Tier 3: Doomseeker (Steel) */}
+              <div className="relative mb-16">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Doomseeker Path</h2>
+                <div className="flex items-center">
+                  {tasks
+                    .filter(task => task.tier === 2 && !task.hasOwnProperty('questions'))
+                    .map((task, index) => (
+                      <React.Fragment key={task.id}>
+                        <div 
+                          className="mr-8"
+                          id={`task-${task.id}`}
+                        >
+                          <TaskNode 
+                            id={task.id}
+                            tier="steel"
+                            title={task.title}
+                            isCompleted={task.isCompleted}
+                            isLocked={task.isLocked}
+                            content={task.content}
+                            question={task.question}
+                            onComplete={handleTaskComplete}
+                          />
+                        </div>
+                        {index < 8 && <div className="steel-path w-8 h-2 mr-8"></div>}
+                      </React.Fragment>
+                    ))}
+                </div>
+                
+                {/* Boss node connection */}
+                <div className="flex flex-col items-center ml-20 mt-4">
+                  <div className="steel-path w-2 h-12"></div>
+                  <div 
+                    id={`boss-${30}`}
+                    className="mt-4"
+                  >
+                    <BossNode 
+                      id={30}
+                      tier="steel"
+                      title="Doomseeker"
+                      isDefeated={tasks.find(t => t.id === 30)?.isDefeated || false}
+                      questions={tasks.find(t => t.id === 30)?.questions || []}
+                      onComplete={handleBossComplete}
+                    />
+                  </div>
+                </div>
               </div>
-
-              {/* Champion's Road */}
-              <div className="relative mb-12">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Champion's Road</h2>
-                <svg width="100%" height="180" viewBox="0 0 1000 180" className="overflow-visible">
-                  <path
-                    d="M-50,120 C0,120 0,90 50,90"
-                    fill="none"
-                    stroke="#1f2937"
-                    strokeWidth="30"
-                  />
-                  
-                  <path
-                    d="M0,90 C200,150 150,30 300,90 C450,150 500,30 650,90 C800,150 750,30 950,90 L1000,90 L1000,120 C800,60 850,180 650,120 C450,60 400,180 300,120 C200,60 150,180 0,120 Z"
-                    fill="#1f2937"
-                    stroke="#111827"
-                    strokeWidth="2"
-                  />
-                  
-                  {[100, 300, 500, 700, 900].map((x, index) => {
-                    const yPos = index % 2 === 0 ? 60 : 120;
-                    return (
-                      <g key={index} transform={`translate(${x},${yPos})`}>
-                        {index > 0 && (
-                          <rect x="-40" y="-16" width="24" height="24" fill="#4b5563" stroke="#1f2937" strokeWidth="2" rx="4" />
-                        )}
-                        
-                        <g>
-                          <rect x="-15" y="-10" width="30" height="35" fill="#b91c1c" stroke="#991b1b" strokeWidth="2" />
-                          <polygon points="0,-20 -20,-10 20,-10" fill="#b91c1c" stroke="#991b1b" strokeWidth="2" />
-                          <rect x="-5" y="5" width="10" height="20" fill="#000" opacity="0.4" />
-                        </g>
-                      </g>
-                    );
-                  })}
-                </svg>
+              
+              {/* Tier 4: Deathless (Obsidian) */}
+              <div className="relative mb-16">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Deathless Path</h2>
+                <div className="flex items-center">
+                  {tasks
+                    .filter(task => task.tier === 3 && !task.hasOwnProperty('questions'))
+                    .map((task, index) => (
+                      <React.Fragment key={task.id}>
+                        <div 
+                          className="mr-8"
+                          id={`task-${task.id}`}
+                        >
+                          <TaskNode 
+                            id={task.id}
+                            tier="obsidian"
+                            title={task.title}
+                            isCompleted={task.isCompleted}
+                            isLocked={task.isLocked}
+                            content={task.content}
+                            question={task.question}
+                            onComplete={handleTaskComplete}
+                          />
+                        </div>
+                        {index < 8 && <div className="obsidian-path w-8 h-2 mr-8"></div>}
+                      </React.Fragment>
+                    ))}
+                </div>
+                
+                {/* Boss node connection */}
+                <div className="flex flex-col items-center ml-20 mt-4">
+                  <div className="obsidian-path w-2 h-12"></div>
+                  <div 
+                    id={`boss-${40}`}
+                    className="mt-4"
+                  >
+                    <BossNode 
+                      id={40}
+                      tier="obsidian"
+                      title="Deathless"
+                      isDefeated={tasks.find(t => t.id === 40)?.isDefeated || false}
+                      questions={tasks.find(t => t.id === 40)?.questions || []}
+                      onComplete={handleBossComplete}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Tier 5: Thrice-Forged (Gold) */}
+              <div className="relative">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Thrice-Forged Path</h2>
+                <div className="flex items-center">
+                  {tasks
+                    .filter(task => task.tier === 4 && !task.hasOwnProperty('questions'))
+                    .map((task, index) => (
+                      <React.Fragment key={task.id}>
+                        <div 
+                          className="mr-8"
+                          id={`task-${task.id}`}
+                        >
+                          <TaskNode 
+                            id={task.id}
+                            tier="gold"
+                            title={task.title}
+                            isCompleted={task.isCompleted}
+                            isLocked={task.isLocked}
+                            content={task.content}
+                            question={task.question}
+                            onComplete={handleTaskComplete}
+                          />
+                        </div>
+                        {index < 8 && <div className="gold-path w-8 h-2 mr-8"></div>}
+                      </React.Fragment>
+                    ))}
+                </div>
+                
+                {/* Boss node connection */}
+                <div className="flex flex-col items-center ml-20 mt-4">
+                  <div className="gold-path w-2 h-12"></div>
+                  <div 
+                    id={`boss-${50}`}
+                    className="mt-4"
+                  >
+                    <BossNode 
+                      id={50}
+                      tier="gold"
+                      title="Thrice-Forged"
+                      isDefeated={tasks.find(t => t.id === 50)?.isDefeated || false}
+                      questions={tasks.find(t => t.id === 50)?.questions || []}
+                      onComplete={handleBossComplete}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </main>
 
           {/* Special Quest Sidebar */}
-          <aside className="w-1/4 fixed right-0 top-0 bottom-0 p-6 bg-[#2e4459] border-l border-[#3a5068] flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-yellow-400">
-              <Sword size={24} />
-              Special Quest
-            </h2>
-            
-            <div className="text-center mb-4">
-              <AnimatedText>BOSS FIGHT</AnimatedText>
-            </div>
-            
-            <p className="text-sm text-gray-300 mb-4">
-              Defeat The Final Boss to unlock the next Tier.
-            </p>
-            
-            <div className="relative bg-red-900/20 rounded-lg p-4 border border-red-500/30 mb-4 flex justify-center items-center">
-              <div className="w-40 h-40 relative bg-gray-800/80 rounded-full flex items-center justify-center overflow-hidden">
-                <span className="text-6xl">👹</span>
-                <div className="absolute -top-3 -right-3 bg-red-600 w-8 h-8 rounded-full flex items-center justify-center">
-                  <Sword size={16} className="text-white transform rotate-45" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-center mb-4">
-              <div className="bg-yellow-600/20 rounded-lg p-3 border border-yellow-500/30">
-                <Trophy size={24} className="mx-auto text-yellow-400" />
-                <p className="text-lg font-bold text-white">500 XP</p>
-              </div>
-              <div className="bg-blue-600/20 rounded-lg p-3 border border-blue-500/30">
-                <Shield size={24} className="mx-auto text-blue-400" />
-                <p className="text-lg font-bold text-white">100 Points</p>
-              </div>
-            </div>
-            
-            <button className="mt-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg border border-red-500 shadow-lg transition-colors duration-200">
-              Start Final Boss Fight
-            </button>
+          <aside className="w-1/4 fixed right-0 top-0 bottom-0 p-6 overflow-hidden mt-16">
+            <SpecialQuest 
+              nextBossLevel={getNextBossLevel()}
+              onBossFight={handleBossFight}
+            />
           </aside>
         </div>
 
@@ -244,7 +554,29 @@ const CourseDetail = () => {
                   <div key={item.name} className="bg-[#364c63] p-4 rounded-lg">
                     <h3 className="font-bold">{item.name}</h3>
                     <p className="text-sm text-gray-300 mb-2">{item.description}</p>
-                    <button className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded w-full">
+                    <button 
+                      className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded w-full"
+                      onClick={() => {
+                        if (playerStats.points >= item.price) {
+                          setPlayerStats(prev => ({
+                            ...prev,
+                            points: prev.points - item.price
+                          }));
+                          
+                          toast({
+                            title: `${item.name} Purchased!`,
+                            description: `You have spent ${item.price} points.`,
+                            variant: "default",
+                          });
+                        } else {
+                          toast({
+                            title: "Not Enough Points",
+                            description: `You need ${item.price} points to purchase this item.`,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
                       {item.price} Points
                     </button>
                   </div>
