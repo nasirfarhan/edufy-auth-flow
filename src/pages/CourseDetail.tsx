@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChevronUp } from "lucide-react";
@@ -12,7 +10,6 @@ import SpecialQuest from "@/components/game/SpecialQuest";
 import { useToast } from "@/components/ui/use-toast";
 import "../styles/roadmap.css";
 
-// Mock data for tasks and questions
 const tiers = [
   { id: 1, name: "Unblooded", pathClass: "bronze-path" },
   { id: 2, name: "Warborn", pathClass: "iron-path" },
@@ -24,12 +21,10 @@ const tiers = [
 const generateMockTasks = () => {
   const tasks = [];
   
-  // Generate tasks for each tier
   for (let tier = 0; tier < 5; tier++) {
     for (let taskNum = 1; taskNum <= 9; taskNum++) {
       const taskId = tier * 10 + taskNum;
       
-      // Generate a mock question for this task
       const options = [
         `Option A for task ${taskId}`,
         `Option B for task ${taskId}`,
@@ -45,18 +40,16 @@ const generateMockTasks = () => {
         question: {
           text: `Question for task ${taskId}: What is the correct answer?`,
           options,
-          correctAnswer: Math.floor(Math.random() * 4), // Random correct answer
+          correctAnswer: Math.floor(Math.random() * 4),
         },
         isCompleted: false,
-        isLocked: tier > 0 || taskNum > 1, // First task of first tier is unlocked
+        isLocked: tier > 0 || taskNum > 1,
       });
     }
     
-    // Add a boss for each tier
     const bossId = (tier + 1) * 10;
     const bossQuestions = [];
     
-    // Generate 15 questions for the boss
     for (let i = 0; i < 15; i++) {
       bossQuestions.push({
         text: `Boss ${tier + 1} Question ${i + 1}: What is the correct answer?`,
@@ -66,7 +59,7 @@ const generateMockTasks = () => {
           `Option C for boss ${tier + 1} question ${i + 1}`,
           `Option D for boss ${tier + 1} question ${i + 1}`,
         ],
-        correctAnswer: Math.floor(Math.random() * 4), // Random correct answer
+        correctAnswer: Math.floor(Math.random() * 4),
       });
     }
     
@@ -96,19 +89,16 @@ const CourseDetail = () => {
   });
   
   const [tasks, setTasks] = useState(generateMockTasks());
-  const [userTier, setUserTier] = useState(0); // Starting at tier 0 (Unblooded)
+  const [userTier, setUserTier] = useState(0);
   
-  // Compute which boss should be next based on player progress
   const getNextBossLevel = () => {
-    // Find the next undefeated boss
     const nextBoss = tasks
-      .filter(task => task.hasOwnProperty('questions')) // Filter for boss nodes
+      .filter(task => task.hasOwnProperty('questions'))
       .find(boss => !boss.isDefeated);
     
     return nextBoss ? tiers[nextBoss.tier].name as 'Unblooded' | 'Warborn' | 'Doomseeker' | 'Deathless' | 'Thrice-Forged' : 'Thrice-Forged';
   };
   
-  // Handle task completion
   const handleTaskComplete = (taskId: number) => {
     setTasks(prevTasks => 
       prevTasks.map(task => 
@@ -118,7 +108,6 @@ const CourseDetail = () => {
       )
     );
     
-    // Unlock the next task
     const currentTaskIndex = tasks.findIndex(task => task.id === taskId);
     if (currentTaskIndex >= 0 && currentTaskIndex < tasks.length - 1) {
       setTasks(prevTasks => 
@@ -130,7 +119,6 @@ const CourseDetail = () => {
       );
     }
     
-    // Award XP and points
     const xpGained = 100;
     const pointsGained = 10;
     updatePlayerStats(xpGained, pointsGained);
@@ -142,9 +130,8 @@ const CourseDetail = () => {
     });
   };
   
-  // Handle boss defeat
   const handleBossComplete = (bossId: number, score: number) => {
-    if (score >= 8) { // At least half correct to defeat the boss
+    if (score >= 8) {
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === bossId 
@@ -153,7 +140,6 @@ const CourseDetail = () => {
         )
       );
       
-      // Unlock the first task of the next tier
       const nextTierFirstTaskId = bossId + 1;
       setTasks(prevTasks => 
         prevTasks.map(task => 
@@ -163,13 +149,11 @@ const CourseDetail = () => {
         )
       );
       
-      // Update player's tier if this is their current tier boss
       const bossTier = Math.floor(bossId / 10) - 1;
       if (userTier === bossTier) {
         setUserTier(prevTier => prevTier + 1);
       }
       
-      // Award XP and points (100 XP and 10 points per correct answer)
       const xpGained = score * 100;
       const pointsGained = score * 10;
       updatePlayerStats(xpGained, pointsGained);
@@ -182,13 +166,11 @@ const CourseDetail = () => {
     }
   };
   
-  // Update player stats
   const updatePlayerStats = (xpGained: number, pointsGained: number) => {
     setPlayerStats(prev => {
       const newXP = prev.xp + xpGained;
       const newPoints = prev.points + pointsGained;
       
-      // Level increases with every 100 points
       const newLevel = Math.floor(newPoints / 100) + 1;
       
       return {
@@ -200,15 +182,12 @@ const CourseDetail = () => {
     });
   };
   
-  // Handle boss fight button click
   const handleBossFight = () => {
-    // Find the next undefeated boss
     const nextBoss = tasks
-      .filter(task => task.hasOwnProperty('questions')) // Filter for boss nodes
+      .filter(task => task.hasOwnProperty('questions'))
       .find(boss => !boss.isDefeated);
     
     if (nextBoss) {
-      // Simulate clicking on the boss node
       const bossElement = document.getElementById(`boss-${nextBoss.id}`);
       if (bossElement) {
         bossElement.click();
@@ -222,7 +201,6 @@ const CourseDetail = () => {
     }
   };
   
-  // Spend points for retry
   const spendPointsForRetry = () => {
     if (playerStats.points >= 5) {
       setPlayerStats(prev => ({
@@ -242,351 +220,331 @@ const CourseDetail = () => {
     }
   };
 
-  // Format the course title
   const formattedCourseTitle = courseId 
     ? courseId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') 
     : 'Course';
   
   return (
-    <DashboardLayout>
-      <div className="flex flex-col min-h-screen bg-[#1d3748] relative">
-        <div className="flex flex-1">
-          {/* Left side with player stats */}
-          <div className="w-1/4 p-6">
-            <PlayerStats 
-              name={playerStats.name}
-              xp={playerStats.xp}
-              points={playerStats.points}
-              level={playerStats.level}
-            />
-          </div>
-          
-          {/* Main game area */}
-          <main className="w-2/4 overflow-y-auto p-6">
-            <header className="text-center mb-12">
-              <h1 className="text-3xl font-bold text-yellow-400">
-                {formattedCourseTitle}
-              </h1>
-              <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
-                (But You Gotta Fight Through It)
-              </p>
-              <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
-                Embark on an epic journey to master this subject! Battle through challenges, 
-                conquer bosses, and level up your coding skills. This course transforms complex 
-                concepts into engaging quests that will make you a coding champion.
-              </p>
-            </header>
-
-            {/* Game Paths */}
-            <div className="relative mt-16 pl-6 pr-24 pb-24">
-              {/* Tier 1: Unblooded (Bronze) */}
-              <div className="relative mb-16">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Unblooded Path</h2>
-                <div className="flex items-center">
-                  {/* Character avatar at start */}
-                  <div className="player-avatar mr-8">
-                    🧙‍♂️
-                  </div>
-                  
-                  {/* Tasks for this tier */}
-                  {tasks
-                    .filter(task => task.tier === 0 && !task.hasOwnProperty('questions'))
-                    .map((task, index) => (
-                      <React.Fragment key={task.id}>
-                        <div 
-                          className="mr-8"
-                          id={`task-${task.id}`}
-                        >
-                          <TaskNode 
-                            id={task.id}
-                            tier="bronze"
-                            title={task.title}
-                            isCompleted={task.isCompleted}
-                            isLocked={task.isLocked}
-                            content={task.content}
-                            question={task.question}
-                            onComplete={handleTaskComplete}
-                          />
-                        </div>
-                        {index < 8 && <div className="bronze-path w-8 h-2 mr-8"></div>}
-                      </React.Fragment>
-                    ))}
-                </div>
-                
-                {/* Boss node connection */}
-                <div className="flex flex-col items-center ml-20 mt-4">
-                  <div className="bronze-path w-2 h-12"></div>
-                  <div 
-                    id={`boss-${10}`}
-                    className="mt-4"
-                  >
-                    <BossNode 
-                      id={10}
-                      tier="bronze"
-                      title="Unblooded"
-                      isDefeated={tasks.find(t => t.id === 10)?.isDefeated || false}
-                      questions={tasks.find(t => t.id === 10)?.questions || []}
-                      onComplete={handleBossComplete}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Tier 2: Warborn (Iron) */}
-              <div className="relative mb-16">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Warborn Path</h2>
-                <div className="flex items-center">
-                  {tasks
-                    .filter(task => task.tier === 1 && !task.hasOwnProperty('questions'))
-                    .map((task, index) => (
-                      <React.Fragment key={task.id}>
-                        <div 
-                          className="mr-8"
-                          id={`task-${task.id}`}
-                        >
-                          <TaskNode 
-                            id={task.id}
-                            tier="iron"
-                            title={task.title}
-                            isCompleted={task.isCompleted}
-                            isLocked={task.isLocked}
-                            content={task.content}
-                            question={task.question}
-                            onComplete={handleTaskComplete}
-                          />
-                        </div>
-                        {index < 8 && <div className="iron-path w-8 h-2 mr-8"></div>}
-                      </React.Fragment>
-                    ))}
-                </div>
-                
-                {/* Boss node connection */}
-                <div className="flex flex-col items-center ml-20 mt-4">
-                  <div className="iron-path w-2 h-12"></div>
-                  <div 
-                    id={`boss-${20}`}
-                    className="mt-4"
-                  >
-                    <BossNode 
-                      id={20}
-                      tier="iron"
-                      title="Warborn"
-                      isDefeated={tasks.find(t => t.id === 20)?.isDefeated || false}
-                      questions={tasks.find(t => t.id === 20)?.questions || []}
-                      onComplete={handleBossComplete}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Tier 3: Doomseeker (Steel) */}
-              <div className="relative mb-16">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Doomseeker Path</h2>
-                <div className="flex items-center">
-                  {tasks
-                    .filter(task => task.tier === 2 && !task.hasOwnProperty('questions'))
-                    .map((task, index) => (
-                      <React.Fragment key={task.id}>
-                        <div 
-                          className="mr-8"
-                          id={`task-${task.id}`}
-                        >
-                          <TaskNode 
-                            id={task.id}
-                            tier="steel"
-                            title={task.title}
-                            isCompleted={task.isCompleted}
-                            isLocked={task.isLocked}
-                            content={task.content}
-                            question={task.question}
-                            onComplete={handleTaskComplete}
-                          />
-                        </div>
-                        {index < 8 && <div className="steel-path w-8 h-2 mr-8"></div>}
-                      </React.Fragment>
-                    ))}
-                </div>
-                
-                {/* Boss node connection */}
-                <div className="flex flex-col items-center ml-20 mt-4">
-                  <div className="steel-path w-2 h-12"></div>
-                  <div 
-                    id={`boss-${30}`}
-                    className="mt-4"
-                  >
-                    <BossNode 
-                      id={30}
-                      tier="steel"
-                      title="Doomseeker"
-                      isDefeated={tasks.find(t => t.id === 30)?.isDefeated || false}
-                      questions={tasks.find(t => t.id === 30)?.questions || []}
-                      onComplete={handleBossComplete}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Tier 4: Deathless (Obsidian) */}
-              <div className="relative mb-16">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Deathless Path</h2>
-                <div className="flex items-center">
-                  {tasks
-                    .filter(task => task.tier === 3 && !task.hasOwnProperty('questions'))
-                    .map((task, index) => (
-                      <React.Fragment key={task.id}>
-                        <div 
-                          className="mr-8"
-                          id={`task-${task.id}`}
-                        >
-                          <TaskNode 
-                            id={task.id}
-                            tier="obsidian"
-                            title={task.title}
-                            isCompleted={task.isCompleted}
-                            isLocked={task.isLocked}
-                            content={task.content}
-                            question={task.question}
-                            onComplete={handleTaskComplete}
-                          />
-                        </div>
-                        {index < 8 && <div className="obsidian-path w-8 h-2 mr-8"></div>}
-                      </React.Fragment>
-                    ))}
-                </div>
-                
-                {/* Boss node connection */}
-                <div className="flex flex-col items-center ml-20 mt-4">
-                  <div className="obsidian-path w-2 h-12"></div>
-                  <div 
-                    id={`boss-${40}`}
-                    className="mt-4"
-                  >
-                    <BossNode 
-                      id={40}
-                      tier="obsidian"
-                      title="Deathless"
-                      isDefeated={tasks.find(t => t.id === 40)?.isDefeated || false}
-                      questions={tasks.find(t => t.id === 40)?.questions || []}
-                      onComplete={handleBossComplete}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Tier 5: Thrice-Forged (Gold) */}
-              <div className="relative">
-                <h2 className="text-3xl font-bold text-yellow-400 mb-8">Thrice-Forged Path</h2>
-                <div className="flex items-center">
-                  {tasks
-                    .filter(task => task.tier === 4 && !task.hasOwnProperty('questions'))
-                    .map((task, index) => (
-                      <React.Fragment key={task.id}>
-                        <div 
-                          className="mr-8"
-                          id={`task-${task.id}`}
-                        >
-                          <TaskNode 
-                            id={task.id}
-                            tier="gold"
-                            title={task.title}
-                            isCompleted={task.isCompleted}
-                            isLocked={task.isLocked}
-                            content={task.content}
-                            question={task.question}
-                            onComplete={handleTaskComplete}
-                          />
-                        </div>
-                        {index < 8 && <div className="gold-path w-8 h-2 mr-8"></div>}
-                      </React.Fragment>
-                    ))}
-                </div>
-                
-                {/* Boss node connection */}
-                <div className="flex flex-col items-center ml-20 mt-4">
-                  <div className="gold-path w-2 h-12"></div>
-                  <div 
-                    id={`boss-${50}`}
-                    className="mt-4"
-                  >
-                    <BossNode 
-                      id={50}
-                      tier="gold"
-                      title="Thrice-Forged"
-                      isDefeated={tasks.find(t => t.id === 50)?.isDefeated || false}
-                      questions={tasks.find(t => t.id === 50)?.questions || []}
-                      onComplete={handleBossComplete}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-
-          {/* Special Quest Sidebar */}
-          <aside className="w-1/4 fixed right-0 top-0 bottom-0 p-6 overflow-hidden mt-16">
-            <SpecialQuest 
-              nextBossLevel={getNextBossLevel()}
-              onBossFight={handleBossFight}
-            />
-          </aside>
+    <div className="flex flex-col min-h-screen bg-[#1d3748] font-['Pixel Sans Serif']">
+      <div className="flex flex-1">
+        <div className="w-1/4 p-6">
+          <PlayerStats 
+            name={playerStats.name}
+            xp={playerStats.xp}
+            points={playerStats.points}
+            level={playerStats.level}
+          />
         </div>
+        
+        <main className="w-2/4 overflow-y-auto p-6">
+          <header className="text-center mb-12">
+            <h1 className="text-3xl font-bold text-yellow-400">
+              {formattedCourseTitle}
+            </h1>
+            <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
+              (But You Gotta Fight Through It)
+            </p>
+            <p className="mt-2 text-gray-300 max-w-3xl mx-auto">
+              Embark on an epic journey to master this subject! Battle through challenges, 
+              conquer bosses, and level up your coding skills. This course transforms complex 
+              concepts into engaging quests that will make you a coding champion.
+            </p>
+          </header>
 
-        {/* Shop Drop-up */}
-        <Sheet open={shopOpen} onOpenChange={setShopOpen}>
-          <SheetTrigger asChild>
-            <button
-              className="fixed bottom-4 left-1/2 transform -translate-x-1/2 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg p-2 z-20"
-            >
-              <ChevronUp className="h-6 w-6 text-white" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="bg-[#2e4459] border-t border-blue-800 text-white">
-            <div className="p-4">
-              <h2 className="text-2xl font-bold mb-4">Shop</h2>
-              <p className="text-gray-300 mb-4">Use your hard-earned points to purchase power-ups and special items.</p>
+          <div className="relative mt-16 pl-6 pr-24 pb-24">
+            <div className="relative mb-16">
+              <h2 className="text-3xl font-bold text-yellow-400 mb-8">Unblooded Path</h2>
+              <div className="flex items-center">
+                <div className="player-avatar mr-8">
+                  🧙‍♂️
+                </div>
+                
+                {tasks
+                  .filter(task => task.tier === 0 && !task.hasOwnProperty('questions'))
+                  .map((task, index) => (
+                    <React.Fragment key={task.id}>
+                      <div 
+                        className="mr-8"
+                        id={`task-${task.id}`}
+                      >
+                        <TaskNode 
+                          id={task.id}
+                          tier="bronze"
+                          title={task.title}
+                          isCompleted={task.isCompleted}
+                          isLocked={task.isLocked}
+                          content={task.content}
+                          question={task.question}
+                          onComplete={handleTaskComplete}
+                        />
+                      </div>
+                      {index < 8 && <div className="bronze-path w-8 h-2 mr-8"></div>}
+                    </React.Fragment>
+                  ))}
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { name: "Power Boost", price: 300, description: "+50% XP gain" },
-                  { name: "Shield", price: 200, description: "Skip one obstacle" },
-                  { name: "Double Points", price: 500, description: "2x points for next quest" }
-                ].map((item) => (
-                  <div key={item.name} className="bg-[#364c63] p-4 rounded-lg">
-                    <h3 className="font-bold">{item.name}</h3>
-                    <p className="text-sm text-gray-300 mb-2">{item.description}</p>
-                    <button 
-                      className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded w-full"
-                      onClick={() => {
-                        if (playerStats.points >= item.price) {
-                          setPlayerStats(prev => ({
-                            ...prev,
-                            points: prev.points - item.price
-                          }));
-                          
-                          toast({
-                            title: `${item.name} Purchased!`,
-                            description: `You have spent ${item.price} points.`,
-                            variant: "default",
-                          });
-                        } else {
-                          toast({
-                            title: "Not Enough Points",
-                            description: `You need ${item.price} points to purchase this item.`,
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      {item.price} Points
-                    </button>
-                  </div>
-                ))}
+              <div className="flex flex-col items-center ml-20 mt-4">
+                <div className="bronze-path w-2 h-12"></div>
+                <div 
+                  id={`boss-${10}`}
+                  className="mt-4"
+                >
+                  <BossNode 
+                    id={10}
+                    tier="bronze"
+                    title="Unblooded"
+                    isDefeated={tasks.find(t => t.id === 10)?.isDefeated || false}
+                    questions={tasks.find(t => t.id === 10)?.questions || []}
+                    onComplete={handleBossComplete}
+                  />
+                </div>
               </div>
             </div>
-          </SheetContent>
-        </Sheet>
+            
+            <div className="relative mb-16">
+              <h2 className="text-3xl font-bold text-yellow-400 mb-8">Warborn Path</h2>
+              <div className="flex items-center">
+                {tasks
+                  .filter(task => task.tier === 1 && !task.hasOwnProperty('questions'))
+                  .map((task, index) => (
+                    <React.Fragment key={task.id}>
+                      <div 
+                        className="mr-8"
+                        id={`task-${task.id}`}
+                      >
+                        <TaskNode 
+                          id={task.id}
+                          tier="iron"
+                          title={task.title}
+                          isCompleted={task.isCompleted}
+                          isLocked={task.isLocked}
+                          content={task.content}
+                          question={task.question}
+                          onComplete={handleTaskComplete}
+                        />
+                      </div>
+                      {index < 8 && <div className="iron-path w-8 h-2 mr-8"></div>}
+                    </React.Fragment>
+                  ))}
+              </div>
+              
+              <div className="flex flex-col items-center ml-20 mt-4">
+                <div className="iron-path w-2 h-12"></div>
+                <div 
+                  id={`boss-${20}`}
+                  className="mt-4"
+                >
+                  <BossNode 
+                    id={20}
+                    tier="iron"
+                    title="Warborn"
+                    isDefeated={tasks.find(t => t.id === 20)?.isDefeated || false}
+                    questions={tasks.find(t => t.id === 20)?.questions || []}
+                    onComplete={handleBossComplete}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative mb-16">
+              <h2 className="text-3xl font-bold text-yellow-400 mb-8">Doomseeker Path</h2>
+              <div className="flex items-center">
+                {tasks
+                  .filter(task => task.tier === 2 && !task.hasOwnProperty('questions'))
+                  .map((task, index) => (
+                    <React.Fragment key={task.id}>
+                      <div 
+                        className="mr-8"
+                        id={`task-${task.id}`}
+                      >
+                        <TaskNode 
+                          id={task.id}
+                          tier="steel"
+                          title={task.title}
+                          isCompleted={task.isCompleted}
+                          isLocked={task.isLocked}
+                          content={task.content}
+                          question={task.question}
+                          onComplete={handleTaskComplete}
+                        />
+                      </div>
+                      {index < 8 && <div className="steel-path w-8 h-2 mr-8"></div>}
+                    </React.Fragment>
+                  ))}
+              </div>
+              
+              <div className="flex flex-col items-center ml-20 mt-4">
+                <div className="steel-path w-2 h-12"></div>
+                <div 
+                  id={`boss-${30}`}
+                  className="mt-4"
+                >
+                  <BossNode 
+                    id={30}
+                    tier="steel"
+                    title="Doomseeker"
+                    isDefeated={tasks.find(t => t.id === 30)?.isDefeated || false}
+                    questions={tasks.find(t => t.id === 30)?.questions || []}
+                    onComplete={handleBossComplete}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative mb-16">
+              <h2 className="text-3xl font-bold text-yellow-400 mb-8">Deathless Path</h2>
+              <div className="flex items-center">
+                {tasks
+                  .filter(task => task.tier === 3 && !task.hasOwnProperty('questions'))
+                  .map((task, index) => (
+                    <React.Fragment key={task.id}>
+                      <div 
+                        className="mr-8"
+                        id={`task-${task.id}`}
+                      >
+                        <TaskNode 
+                          id={task.id}
+                          tier="obsidian"
+                          title={task.title}
+                          isCompleted={task.isCompleted}
+                          isLocked={task.isLocked}
+                          content={task.content}
+                          question={task.question}
+                          onComplete={handleTaskComplete}
+                        />
+                      </div>
+                      {index < 8 && <div className="obsidian-path w-8 h-2 mr-8"></div>}
+                    </React.Fragment>
+                  ))}
+              </div>
+              
+              <div className="flex flex-col items-center ml-20 mt-4">
+                <div className="obsidian-path w-2 h-12"></div>
+                <div 
+                  id={`boss-${40}`}
+                  className="mt-4"
+                >
+                  <BossNode 
+                    id={40}
+                    tier="obsidian"
+                    title="Deathless"
+                    isDefeated={tasks.find(t => t.id === 40)?.isDefeated || false}
+                    questions={tasks.find(t => t.id === 40)?.questions || []}
+                    onComplete={handleBossComplete}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <h2 className="text-3xl font-bold text-yellow-400 mb-8">Thrice-Forged Path</h2>
+              <div className="flex items-center">
+                {tasks
+                  .filter(task => task.tier === 4 && !task.hasOwnProperty('questions'))
+                  .map((task, index) => (
+                    <React.Fragment key={task.id}>
+                      <div 
+                        className="mr-8"
+                        id={`task-${task.id}`}
+                      >
+                        <TaskNode 
+                          id={task.id}
+                          tier="gold"
+                          title={task.title}
+                          isCompleted={task.isCompleted}
+                          isLocked={task.isLocked}
+                          content={task.content}
+                          question={task.question}
+                          onComplete={handleTaskComplete}
+                        />
+                      </div>
+                      {index < 8 && <div className="gold-path w-8 h-2 mr-8"></div>}
+                    </React.Fragment>
+                  ))}
+              </div>
+              
+              <div className="flex flex-col items-center ml-20 mt-4">
+                <div className="gold-path w-2 h-12"></div>
+                <div 
+                  id={`boss-${50}`}
+                  className="mt-4"
+                >
+                  <BossNode 
+                    id={50}
+                    tier="gold"
+                    title="Thrice-Forged"
+                    isDefeated={tasks.find(t => t.id === 50)?.isDefeated || false}
+                    questions={tasks.find(t => t.id === 50)?.questions || []}
+                    onComplete={handleBossComplete}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside className="w-1/4 fixed right-0 top-0 bottom-0 p-6 overflow-hidden mt-16">
+          <SpecialQuest 
+            nextBossLevel={getNextBossLevel()}
+            onBossFight={handleBossFight}
+          />
+        </aside>
       </div>
-    </DashboardLayout>
+
+      <Sheet open={shopOpen} onOpenChange={setShopOpen}>
+        <SheetTrigger asChild>
+          <button
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg p-2 z-20"
+          >
+            <ChevronUp className="h-6 w-6 text-white" />
+          </button>
+        </SheetTrigger>
+        <SheetContent side="bottom" className="bg-[#2e4459] border-t border-blue-800 text-white">
+          <div className="p-4">
+            <h2 className="text-2xl font-bold mb-4">Shop</h2>
+            <p className="text-gray-300 mb-4">Use your hard-earned points to purchase power-ups and special items.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { name: "Power Boost", price: 300, description: "+50% XP gain" },
+                { name: "Shield", price: 200, description: "Skip one obstacle" },
+                { name: "Double Points", price: 500, description: "2x points for next quest" }
+              ].map((item) => (
+                <div key={item.name} className="bg-[#364c63] p-4 rounded-lg">
+                  <h3 className="font-bold">{item.name}</h3>
+                  <p className="text-sm text-gray-300 mb-2">{item.description}</p>
+                  <button 
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded w-full"
+                    onClick={() => {
+                      if (playerStats.points >= item.price) {
+                        setPlayerStats(prev => ({
+                          ...prev,
+                          points: prev.points - item.price
+                        }));
+                        
+                        toast({
+                          title: `${item.name} Purchased!`,
+                          description: `You have spent ${item.price} points.`,
+                          variant: "default",
+                        });
+                      } else {
+                        toast({
+                          title: "Not Enough Points",
+                          description: `You need ${item.price} points to purchase this item.`,
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    {item.price} Points
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 };
 
