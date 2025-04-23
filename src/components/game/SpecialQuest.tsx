@@ -55,21 +55,14 @@ const SpecialQuest = ({ nextBossLevel, onBossFight }: SpecialQuestProps) => {
         </div>
       </div>
       
-      <div className="flex flex-col items-center">
-        <p className="text-sm text-gray-300 mb-4 text-center">
-          Ready For The {nextBossLevel} Boss?
-        </p>
-        
-        <button 
-          onClick={onBossFight}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg border border-red-500 shadow-lg transition-colors duration-200"
-        >
-          Fight {nextBossLevel} Boss
-        </button>
-      </div>
+      <button 
+        onClick={onBossFight}
+        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg border border-red-500 shadow-lg transition-colors duration-200 mt-2"
+      >
+        Fight {nextBossLevel} Boss
+      </button>
     </div>
   );
 };
 
 export default SpecialQuest;
-

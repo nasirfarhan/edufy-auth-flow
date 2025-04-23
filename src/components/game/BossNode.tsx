@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Sword } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BOSS_IMAGES } from '@/constants/gameAssets';
 
 interface BossNodeProps {
   id: number;
@@ -38,6 +39,23 @@ const BossNode = ({
     steel: 'steel-path',
     obsidian: 'obsidian-path',
     gold: 'gold-path'
+  };
+
+  const getBossImage = () => {
+    switch (tier) {
+      case 'bronze':
+        return BOSS_IMAGES.unblooded;
+      case 'iron':
+        return BOSS_IMAGES.warborn;
+      case 'steel':
+        return BOSS_IMAGES.doomseeker;
+      case 'obsidian':
+        return BOSS_IMAGES.deathless;
+      case 'gold':
+        return BOSS_IMAGES.thriceForged;
+      default:
+        return '';
+    }
   };
 
   const handleNodeClick = () => {
@@ -89,13 +107,22 @@ const BossNode = ({
         {isDefeated ? (
           <Trophy className="text-yellow-400 h-10 w-10" />
         ) : (
-          <span className="text-2xl">BOSS</span>
+          <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+            <img 
+              src={getBossImage()} 
+              alt={`${title} Boss`} 
+              className="w-full h-full object-contain"
+            />
+          </div>
         )}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="boss-dialog max-w-2xl">
-          <DialogTitle className="text-yellow-400 text-2xl">{title} - Boss Fight</DialogTitle>
+          <DialogTitle className="text-yellow-400 text-2xl flex items-center gap-2">
+            <Sword className="text-red-500" />
+            {title} - Boss Fight
+          </DialogTitle>
           
           {!showResult ? (
             <div className="py-4">

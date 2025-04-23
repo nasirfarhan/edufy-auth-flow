@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { CircleCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BOSS_IMAGES } from '@/constants/gameAssets';
 
 interface TaskNodeProps {
   id: number;
@@ -17,6 +18,7 @@ interface TaskNodeProps {
     correctAnswer: number;
   };
   onComplete: (id: number) => void;
+  isCurrentTask?: boolean;
 }
 
 const TaskNode = ({ 
@@ -27,7 +29,8 @@ const TaskNode = ({
   isLocked, 
   content,
   question,
-  onComplete 
+  onComplete,
+  isCurrentTask = false
 }: TaskNodeProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showQuestion, setShowQuestion] = useState(false);
@@ -83,6 +86,12 @@ const TaskNode = ({
       >
         {isCompleted ? (
           <CircleCheck className="text-green-500 h-8 w-8" />
+        ) : isCurrentTask ? (
+          <img 
+            src={BOSS_IMAGES.playerCharacter} 
+            alt="Player Character" 
+            className="w-full h-full object-contain" 
+          />
         ) : (
           <span className="text-lg">{id}</span>
         )}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import PlayerStats from "@/components/game/PlayerStats";
 import SpecialQuest from "@/components/game/SpecialQuest";
 import { useToast } from "@/components/ui/use-toast";
 import "../styles/roadmap.css";
+import { APP_DEV_TASKS, BOSS_QUESTIONS } from "@/constants/gameAssets";
 
 const tiers = [
   { id: 1, name: "Unblooded", pathClass: "bronze-path" },
@@ -18,56 +20,33 @@ const tiers = [
   { id: 5, name: "Thrice-Forged", pathClass: "gold-path" },
 ];
 
-const generateMockTasks = () => {
+const generateTasks = () => {
   const tasks = [];
   
   for (let tier = 0; tier < 5; tier++) {
-    for (let taskNum = 1; taskNum <= 9; taskNum++) {
-      const taskId = tier * 10 + taskNum;
-      
-      const options = [
-        `Option A for task ${taskId}`,
-        `Option B for task ${taskId}`,
-        `Option C for task ${taskId}`,
-        `Option D for task ${taskId}`,
-      ];
+    const tierTasks = APP_DEV_TASKS[tier];
+    
+    for (let taskNum = 0; taskNum < 9; taskNum++) {
+      const taskId = tier * 10 + taskNum + 1;
       
       tasks.push({
         id: taskId,
         tier: tier,
-        title: `Task ${taskNum} - ${tiers[tier].name}`,
-        content: `This is the content for task ${taskNum} of the ${tiers[tier].name} tier. Here you'll learn about an important concept related to this course.`,
-        question: {
-          text: `Question for task ${taskId}: What is the correct answer?`,
-          options,
-          correctAnswer: Math.floor(Math.random() * 4),
-        },
+        title: tierTasks[taskNum].title,
+        content: tierTasks[taskNum].content,
+        question: tierTasks[taskNum].question,
         isCompleted: false,
-        isLocked: tier > 0 || taskNum > 1,
+        isLocked: tier > 0 || taskNum > 0,
       });
     }
     
     const bossId = (tier + 1) * 10;
-    const bossQuestions = [];
-    
-    for (let i = 0; i < 15; i++) {
-      bossQuestions.push({
-        text: `Boss ${tier + 1} Question ${i + 1}: What is the correct answer?`,
-        options: [
-          `Option A for boss ${tier + 1} question ${i + 1}`,
-          `Option B for boss ${tier + 1} question ${i + 1}`,
-          `Option C for boss ${tier + 1} question ${i + 1}`,
-          `Option D for boss ${tier + 1} question ${i + 1}`,
-        ],
-        correctAnswer: Math.floor(Math.random() * 4),
-      });
-    }
     
     tasks.push({
       id: bossId,
       tier: tier,
       title: `${tiers[tier].name} Final Boss`,
-      questions: bossQuestions,
+      questions: BOSS_QUESTIONS[tier],
       isDefeated: false,
     });
   }
@@ -88,8 +67,20 @@ const CourseDetail = () => {
     level: 1
   });
   
-  const [tasks, setTasks] = useState(generateMockTasks());
+  const [tasks, setTasks] = useState(generateTasks());
   const [userTier, setUserTier] = useState(0);
+  const [currentTaskId, setCurrentTaskId] = useState(1);
+  
+  // Find the first incomplete, unlocked task
+  useEffect(() => {
+    const firstIncompleteTask = tasks.find(
+      task => !task.isCompleted && !task.isLocked && !task.hasOwnProperty('questions')
+    );
+    
+    if (firstIncompleteTask) {
+      setCurrentTaskId(firstIncompleteTask.id);
+    }
+  }, [tasks]);
   
   const getNextBossLevel = () => {
     const nextBoss = tasks
@@ -117,6 +108,9 @@ const CourseDetail = () => {
             : task
         )
       );
+      
+      // Update current task to the next one
+      setCurrentTaskId(tasks[currentTaskIndex + 1].id);
     }
     
     const xpGained = 100;
@@ -149,6 +143,9 @@ const CourseDetail = () => {
         )
       );
       
+      // Update current task to the next tier's first task
+      setCurrentTaskId(nextTierFirstTaskId);
+      
       const bossTier = Math.floor(bossId / 10) - 1;
       if (userTier === bossTier) {
         setUserTier(prevTier => prevTier + 1);
@@ -171,7 +168,7 @@ const CourseDetail = () => {
       const newXP = prev.xp + xpGained;
       const newPoints = prev.points + pointsGained;
       
-      const newLevel = Math.floor(newPoints / 100) + 1;
+      const newLevel = Math.floor(newXP / 500) + 1;
       
       return {
         ...prev,
@@ -260,7 +257,9 @@ const CourseDetail = () => {
               <h2 className="text-3xl font-bold text-yellow-400 mb-8">Unblooded Path</h2>
               <div className="flex items-center">
                 <div className="player-avatar mr-8">
-                  🧙‍♂️
+                  {currentTaskId === 1 && (
+                    <img src="/lovable-uploads/0d2cdc65-3535-4199-83c5-ffdc16d24efd.png" alt="Player Character" className="w-full h-full object-contain" />
+                  )}
                 </div>
                 
                 {tasks
@@ -280,6 +279,7 @@ const CourseDetail = () => {
                           content={task.content}
                           question={task.question}
                           onComplete={handleTaskComplete}
+                          isCurrentTask={currentTaskId === task.id}
                         />
                       </div>
                       {index < 8 && <div className="bronze-path w-8 h-2 mr-8"></div>}
@@ -325,6 +325,7 @@ const CourseDetail = () => {
                           content={task.content}
                           question={task.question}
                           onComplete={handleTaskComplete}
+                          isCurrentTask={currentTaskId === task.id}
                         />
                       </div>
                       {index < 8 && <div className="iron-path w-8 h-2 mr-8"></div>}
@@ -370,6 +371,7 @@ const CourseDetail = () => {
                           content={task.content}
                           question={task.question}
                           onComplete={handleTaskComplete}
+                          isCurrentTask={currentTaskId === task.id}
                         />
                       </div>
                       {index < 8 && <div className="steel-path w-8 h-2 mr-8"></div>}
@@ -415,6 +417,7 @@ const CourseDetail = () => {
                           content={task.content}
                           question={task.question}
                           onComplete={handleTaskComplete}
+                          isCurrentTask={currentTaskId === task.id}
                         />
                       </div>
                       {index < 8 && <div className="obsidian-path w-8 h-2 mr-8"></div>}
@@ -460,6 +463,7 @@ const CourseDetail = () => {
                           content={task.content}
                           question={task.question}
                           onComplete={handleTaskComplete}
+                          isCurrentTask={currentTaskId === task.id}
                         />
                       </div>
                       {index < 8 && <div className="gold-path w-8 h-2 mr-8"></div>}

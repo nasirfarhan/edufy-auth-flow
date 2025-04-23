@@ -1,3 +1,4 @@
+
 import { Zap, Star, BookOpen } from 'lucide-react';
 import { BOSS_IMAGES } from '@/constants/gameAssets';
 
