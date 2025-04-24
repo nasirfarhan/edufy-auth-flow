@@ -1,0 +1,97 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.path-line {
+  @apply h-8 transition-all duration-300;
+}
+
+.task-node {
+  @apply relative flex justify-center items-center w-16 h-16 rounded-full transition-all duration-300 cursor-pointer;
+}
+
+.task-node-completed {
+  @apply relative;
+}
+
+.task-node-completed::after {
+  content: '';
+  @apply absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-white;
+}
+
+.bronze-path {
+  border: 4px solid #6a4e2f;
+  background: linear-gradient(145deg, #a36b41, #5c3b28);
+  box-shadow: inset 0 0 20px #8a5636, 0 0 10px #8a5636;
+  color: #f1e0c5;
+}
+
+.iron-path {
+  border: 4px solid #4d4d4d;
+  background: linear-gradient(135deg, #b5b5b5, #3a3a3a);
+  box-shadow: inset 0 0 20px #6e6e6e, 0 0 10px #2c2c2c;
+  color: #ffffff;
+}
+
+.steel-path {
+  border: 4px solid #7e8a94;
+  background: linear-gradient(145deg, #cfd9df, #6e7479);
+  box-shadow: inset 0 0 20px #9aa5ae, 0 0 12px #5b6369;
+  color: #e3e3e3;
+}
+
+.obsidian-path {
+  border: 4px solid #1e1e1e;
+  background: linear-gradient(145deg, #3c3c3c, #0e0e0e);
+  box-shadow: inset 0 0 25px #4d2c2c, 0 0 18px #000000;
+  color: #f8d9b2;
+}
+
+.gold-path {
+  border: 4px solid #b8860b;
+  background: linear-gradient(135deg, #ffd700, #c79c38);
+  box-shadow: inset 0 0 20px #f1c40f, 0 0 15px #ffec8b;
+  color: #3b2c04;
+}
+
+.boss-node {
+  @apply relative flex justify-center items-center w-24 h-24 rounded-full transition-all duration-300 cursor-pointer;
+}
+
+.task-locked {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.player-avatar {
+  @apply w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold;
+}
+
+.player-stats {
+  @apply bg-[#2e4459] rounded-lg p-4 border border-blue-400/30;
+}
+
+.special-quest {
+  @apply bg-[#632b2b] text-white rounded-lg p-6 border border-red-800 shadow-lg;
+}
+
+.quest-title {
+  @apply text-yellow-400 text-2xl font-bold mb-4;
+}
+
+.task-dialog {
+  @apply bg-[#2e4459] border border-blue-500 rounded-lg p-6 shadow-2xl max-w-lg w-full;
+}
+
+.boss-dialog {
+  @apply bg-[#3a2a2a] border-2 border-red-800 rounded-lg p-6 shadow-2xl max-w-2xl w-full;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

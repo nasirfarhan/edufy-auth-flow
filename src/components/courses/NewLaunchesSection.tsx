@@ -41,12 +41,14 @@ const NewLaunchesSection = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(true);
+  const [autoScrollActive, setAutoScrollActive] = useState(true);
+  const autoScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: 'left' | 'right', scrollAmount = 320) => {
     if (scrollRef.current) {
       const { current } = scrollRef;
-      const scrollAmount = direction === 'left' ? -320 : 320;
-      current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      const scrollDir = direction === 'left' ? -scrollAmount : scrollAmount;
+      current.scrollBy({ left: scrollDir, behavior: 'smooth' });
     }
   };
 
@@ -55,13 +57,59 @@ const NewLaunchesSection = () => {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
       setShowLeftButton(scrollLeft > 0);
       setShowRightButton(scrollLeft < scrollWidth - clientWidth - 10);
+      
+      // If we're near the end and autoscroll is active, reset scroll position
+      if (scrollLeft >= scrollWidth - clientWidth - 10 && autoScrollActive) {
+        scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      }
     }
+  };
+
+  // Auto scroll functionality
+  useEffect(() => {
+    const startAutoScroll = () => {
+      if (autoScrollActive && scrollRef.current) {
+        autoScrollTimerRef.current = setInterval(() => {
+          const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current!;
+          
+          // If we're near the end, go back to start
+          if (scrollLeft >= scrollWidth - clientWidth - 10) {
+            scrollRef.current!.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            scroll('right', 100);
+          }
+        }, 3500); // Slightly different timing to avoid synchronized scrolling
+      }
+    };
+
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollTimerRef.current) {
+        clearInterval(autoScrollTimerRef.current);
+      }
+    };
+  }, [autoScrollActive]);
+
+  // Pause auto-scroll on hover/touch
+  const handleMouseEnter = () => {
+    setAutoScrollActive(false);
+    if (autoScrollTimerRef.current) {
+      clearInterval(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setAutoScrollActive(true);
   };
 
   useEffect(() => {
     const { current } = scrollRef;
-    current?.addEventListener('scroll', handleScroll);
-    return () => current?.removeEventListener('scroll', handleScroll);
+    if (current) {
+      current.addEventListener('scroll', handleScroll);
+      return () => current.removeEventListener('scroll', handleScroll);
+    }
   }, []);
 
   return (
@@ -81,6 +129,10 @@ const NewLaunchesSection = () => {
         ref={scrollRef}
         className="flex overflow-x-auto space-x-4 py-4 scrollbar-none"
         onScroll={handleScroll}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleMouseEnter}
+        onTouchEnd={handleMouseLeave}
       >
         {newLaunches.map(course => (
           <CourseCard 

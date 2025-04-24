@@ -1,4 +1,3 @@
-
 import { Calendar, Award, CheckSquare, FileText, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -16,30 +15,39 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
   ];
 
   return (
-    <aside 
-      className={`bg-[#172c3a] fixed h-screen w-64 transform transition-transform duration-300 ease-in-out z-10 
-                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 
-                 ${isOpen ? 'md:relative' : 'md:absolute md:left-0'}`}
-    >
-      <div className="p-4">
-        <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
-        <nav>
-          <ul className="space-y-2">
-            {menuItems.map((item, index) => (
-              <li key={index}>
-                <Link
-                  to={item.path}
-                  className="flex items-center text-gray-300 hover:text-white p-2 rounded hover:bg-blue-900/30 transition-colors"
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  <span>{item.text}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-    </aside>
+    <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+          onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))}
+        />
+      )}
+      
+      <aside 
+        className={`bg-[#172c3a] fixed h-screen w-64 transform transition-transform duration-300 ease-in-out z-30
+                   ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
+      >
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
+          <nav>
+            <ul className="space-y-2">
+              {menuItems.map((item, index) => (
+                <li key={index}>
+                  <Link
+                    to={item.path}
+                    className="flex items-center text-gray-300 hover:text-white p-2 rounded hover:bg-blue-900/30 transition-colors"
+                  >
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span>{item.text}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </>
   );
 };
 
