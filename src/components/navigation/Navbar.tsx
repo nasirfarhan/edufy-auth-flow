@@ -35,13 +35,13 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         <Link to="/dashboard" className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-full bg-[#172c3a] flex items-center justify-center">
             <img 
-              src="/lovable-uploads/3fbaf88a-90d9-4da5-ad87-8fcfeebf8e54.png"
+              src="/lovable-uploads/7470a764-a38d-4ef0-8118-73fd300fb84b.png"
               alt="EvoEd"
               className="w-full h-full object-contain"
               loading="eager"
             />
           </div>
-          <span className="text-xl font-bold text-white">EvoEd</span>
+          <span className="text-xl font-bold text-yellow-400">EvoEd</span>
         </Link>
 
         <div className="flex-1 max-w-md mx-4">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
@@ -47,14 +46,15 @@ export default function Login() {
 
   const header = (
     <div className="flex flex-col items-center gap-3">
-      <div className="w-64 h-16 relative mb-4">
+      <div className="w-16 h-16 relative mb-4">
         <img 
-          src="/lovable-uploads/3fbaf88a-90d9-4da5-ad87-8fcfeebf8e54.png"
+          src="/lovable-uploads/7470a764-a38d-4ef0-8118-73fd300fb84b.png"
           alt="EvoEd Logo"
           className="w-full h-full object-contain"
           loading="eager"
         />
       </div>
+      <span className="text-2xl font-bold text-yellow-400">EvoEd</span>
       <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center overflow-hidden">
         <img 
           src="/lovable-uploads/a1fd4678-3174-46c7-84ef-6efc75839b20.png"
@@ -103,7 +103,7 @@ export default function Login() {
         
         <div className="text-center">
           <p className="text-gray-300">
-            New to Edufy?{" "}
+            New to EvoEd?{" "}
             <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-medium">
               Sign Up
             </Link>

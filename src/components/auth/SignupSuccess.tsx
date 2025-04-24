@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { ThumbsUp } from "lucide-react";
+import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function SignupSuccess() {
@@ -22,9 +22,9 @@ export function SignupSuccess() {
   return (
     <div className="text-center py-8">
       <div className="flex justify-center mb-4">
-        <ThumbsUp className="text-green-400 w-16 h-16 animate-[bounce_1s_infinite]" />
+        <Check className="text-green-400 w-16 h-16 animate-[bounce_1s_infinite]" />
       </div>
-      <h2 className="text-2xl font-bold mb-4">Sign up successful!</h2>
+      <h2 className="text-2xl font-bold mb-4">Setting up your EvoEd Account</h2>
       <p className="text-gray-300">Redirecting to login page in {countdown} seconds...</p>
     </div>
   );

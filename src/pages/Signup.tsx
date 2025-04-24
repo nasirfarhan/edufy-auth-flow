@@ -77,11 +77,17 @@ export default function Signup() {
   };
 
   const header = (
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-        <User className="h-6 w-6" />
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-16 h-16 relative mb-4">
+        <img 
+          src="/lovable-uploads/7470a764-a38d-4ef0-8118-73fd300fb84b.png"
+          alt="EvoEd Logo"
+          className="w-full h-full object-contain"
+          loading="eager"
+        />
       </div>
-      <h1 className="text-2xl font-bold">Create An Account</h1>
+      <span className="text-2xl font-bold text-yellow-400">EvoEd</span>
+      <h1 className="text-2xl font-bold">Create An EvoEd Account</h1>
     </div>
   );
 
