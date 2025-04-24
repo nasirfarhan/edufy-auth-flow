@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Search, User } from "lucide-react";
@@ -33,23 +32,17 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
   return (
     <nav className="bg-[#172c3a] py-3 px-4 shadow-md sticky top-0 z-10">
       <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleSidebar}
-            className="text-white hover:bg-blue-900/20"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-          
-          <Link to="/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-              <span className="text-white font-bold">E</span>
-            </div>
-            <span className="text-xl font-bold text-white">Edufy</span>
-          </Link>
-        </div>
+        <Link to="/dashboard" className="flex items-center space-x-2">
+          <div className="w-8 h-8 rounded-full bg-[#172c3a] flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/3fbaf88a-90d9-4da5-ad87-8fcfeebf8e54.png"
+              alt="EvoEd"
+              className="w-full h-full object-contain"
+              loading="eager"
+            />
+          </div>
+          <span className="text-xl font-bold text-white">EvoEd</span>
+        </Link>
 
         <div className="flex-1 max-w-md mx-4">
           <div className="relative">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,7 +71,6 @@ const CourseDetail = () => {
   const [userTier, setUserTier] = useState(0);
   const [currentTaskId, setCurrentTaskId] = useState(1);
   
-  // Find the first incomplete, unlocked task
   useEffect(() => {
     const firstIncompleteTask = tasks.find(
       task => !task.isCompleted && !task.isLocked && !('isDefeated' in task)
@@ -81,7 +79,6 @@ const CourseDetail = () => {
     if (firstIncompleteTask) {
       setCurrentTaskId(firstIncompleteTask.id);
     } else {
-      // If all tasks are completed, find the first unlocked boss that's not defeated
       const nextBoss = tasks.find(
         task => 'isDefeated' in task && !task.isDefeated && !task.isLocked
       );
@@ -119,7 +116,6 @@ const CourseDetail = () => {
         )
       );
       
-      // Update current task to the next one
       setCurrentTaskId(tasks[currentTaskIndex + 1].id);
     }
     
@@ -134,11 +130,9 @@ const CourseDetail = () => {
     });
   };
   
-  // Function to mark all tasks in a tier as completed
   const markTierAsCompleted = (tierNumber: number) => {
     setTasks(prevTasks => 
       prevTasks.map(task => {
-        // Only update tasks in the current tier or below that are not already completed
         if (task.tier <= tierNumber && !('isDefeated' in task) && !task.isCompleted) {
           return { ...task, isCompleted: true };
         }
@@ -151,7 +145,6 @@ const CourseDetail = () => {
     const bossTier = Math.floor(bossId / 10) - 1;
     
     if (score >= Math.ceil(BOSS_QUESTIONS[bossTier].length / 2)) {
-      // Mark the boss as defeated
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === bossId 
@@ -160,10 +153,8 @@ const CourseDetail = () => {
         )
       );
       
-      // Mark all previous tasks in this tier as completed
       markTierAsCompleted(bossTier);
       
-      // Unlock the first task of the next tier if not the last tier
       if (bossTier < 4) {
         const nextTierFirstTaskId = bossId + 1;
         setTasks(prevTasks => 
@@ -174,7 +165,6 @@ const CourseDetail = () => {
           )
         );
         
-        // Unlock the next boss as well
         const nextBossId = bossId + 10;
         setTasks(prevTasks => 
           prevTasks.map(task => 
@@ -184,7 +174,6 @@ const CourseDetail = () => {
           )
         );
         
-        // Update current task to the next tier's first task
         setCurrentTaskId(nextTierFirstTaskId);
       }
       

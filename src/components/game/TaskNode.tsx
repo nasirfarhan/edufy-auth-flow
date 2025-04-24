@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { CircleCheck } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -90,7 +89,8 @@ const TaskNode = ({
           <img 
             src={BOSS_IMAGES.playerCharacter} 
             alt="Player Character" 
-            className="w-full h-full object-cover" 
+            className="w-full h-full object-cover rounded-full"
+            loading="eager"
           />
         ) : (
           <span className="text-lg">{id}</span>
@@ -98,7 +98,7 @@ const TaskNode = ({
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="task-dialog bg-[#1a2c3d] border-blue-800 text-white">
+        <DialogContent className="task-dialog max-w-2xl bg-[#1a2c3d] border-blue-800 text-white">
           <DialogTitle className="text-yellow-400">{title}</DialogTitle>
           
           {!showQuestion ? (

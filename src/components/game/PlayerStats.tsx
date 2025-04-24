@@ -1,4 +1,3 @@
-
 import { Zap, Star, BookOpen } from 'lucide-react';
 import { BOSS_IMAGES } from '@/constants/gameAssets';
 
@@ -9,14 +8,15 @@ interface PlayerStatsProps {
   level: number;
 }
 
-const PlayerStats = ({ name, xp, points, level }: PlayerStatsProps) => {
+const PlayerStats = ({ name, xp = 0, points = 0, level = 1 }: PlayerStatsProps) => {
   return (
     <div className="player-stats flex flex-col items-center bg-[#1a2c3d] p-6 rounded-lg">
       <div className="player-avatar mb-3 w-24 h-24 relative">
         <img 
           src={BOSS_IMAGES.playerAvatar} 
           alt="Player Avatar" 
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover rounded-full"
+          loading="eager"
         />
       </div>
       <h3 className="text-xl font-bold text-yellow-400 mb-2">{name}</h3>

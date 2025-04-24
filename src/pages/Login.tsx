@@ -46,9 +46,22 @@ export default function Login() {
   };
 
   const header = (
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-        <User className="h-6 w-6" />
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-64 h-16 relative mb-4">
+        <img 
+          src="/lovable-uploads/3fbaf88a-90d9-4da5-ad87-8fcfeebf8e54.png"
+          alt="EvoEd Logo"
+          className="w-full h-full object-contain"
+          loading="eager"
+        />
+      </div>
+      <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center overflow-hidden">
+        <img 
+          src="/lovable-uploads/a1fd4678-3174-46c7-84ef-6efc75839b20.png"
+          alt="Avatar"
+          className="w-full h-full object-cover"
+          loading="eager"
+        />
       </div>
       <h1 className="text-2xl font-bold">Sign In</h1>
     </div>
