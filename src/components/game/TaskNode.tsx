@@ -85,12 +85,12 @@ const TaskNode = ({
         onClick={handleNodeClick}
       >
         {isCompleted ? (
-          <CircleCheck className="text-green-500 h-8 w-8" />
+          <CircleCheck className="text-yellow-400 h-8 w-8" />
         ) : isCurrentTask ? (
           <img 
             src={BOSS_IMAGES.playerCharacter} 
             alt="Player Character" 
-            className="w-full h-full object-contain" 
+            className="w-full h-full object-cover" 
           />
         ) : (
           <span className="text-lg">{id}</span>
@@ -98,7 +98,7 @@ const TaskNode = ({
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="task-dialog">
+        <DialogContent className="task-dialog bg-[#1a2c3d] border-blue-800 text-white">
           <DialogTitle className="text-yellow-400">{title}</DialogTitle>
           
           {!showQuestion ? (

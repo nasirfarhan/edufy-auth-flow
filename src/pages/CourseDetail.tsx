@@ -48,6 +48,7 @@ const generateTasks = () => {
       title: `${tiers[tier].name} Final Boss`,
       questions: BOSS_QUESTIONS[tier],
       isDefeated: false,
+      isLocked: tier > 0,
     });
   }
   
@@ -74,17 +75,26 @@ const CourseDetail = () => {
   // Find the first incomplete, unlocked task
   useEffect(() => {
     const firstIncompleteTask = tasks.find(
-      task => !task.isCompleted && !task.isLocked && !task.hasOwnProperty('questions')
+      task => !task.isCompleted && !task.isLocked && !('isDefeated' in task)
     );
     
     if (firstIncompleteTask) {
       setCurrentTaskId(firstIncompleteTask.id);
+    } else {
+      // If all tasks are completed, find the first unlocked boss that's not defeated
+      const nextBoss = tasks.find(
+        task => 'isDefeated' in task && !task.isDefeated && !task.isLocked
+      );
+      
+      if (nextBoss) {
+        setCurrentTaskId(nextBoss.id);
+      }
     }
   }, [tasks]);
   
   const getNextBossLevel = () => {
     const nextBoss = tasks
-      .filter(task => task.hasOwnProperty('questions'))
+      .filter(task => 'questions' in task && !task.isLocked)
       .find(boss => !boss.isDefeated);
     
     return nextBoss ? tiers[nextBoss.tier].name as 'Unblooded' | 'Warborn' | 'Doomseeker' | 'Deathless' | 'Thrice-Forged' : 'Thrice-Forged';
@@ -124,8 +134,24 @@ const CourseDetail = () => {
     });
   };
   
+  // Function to mark all tasks in a tier as completed
+  const markTierAsCompleted = (tierNumber: number) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => {
+        // Only update tasks in the current tier or below that are not already completed
+        if (task.tier <= tierNumber && !('isDefeated' in task) && !task.isCompleted) {
+          return { ...task, isCompleted: true };
+        }
+        return task;
+      })
+    );
+  };
+  
   const handleBossComplete = (bossId: number, score: number) => {
-    if (score >= 8) {
+    const bossTier = Math.floor(bossId / 10) - 1;
+    
+    if (score >= Math.ceil(BOSS_QUESTIONS[bossTier].length / 2)) {
+      // Mark the boss as defeated
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === bossId 
@@ -134,19 +160,34 @@ const CourseDetail = () => {
         )
       );
       
-      const nextTierFirstTaskId = bossId + 1;
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === nextTierFirstTaskId 
-            ? { ...task, isLocked: false } 
-            : task
-        )
-      );
+      // Mark all previous tasks in this tier as completed
+      markTierAsCompleted(bossTier);
       
-      // Update current task to the next tier's first task
-      setCurrentTaskId(nextTierFirstTaskId);
+      // Unlock the first task of the next tier if not the last tier
+      if (bossTier < 4) {
+        const nextTierFirstTaskId = bossId + 1;
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === nextTierFirstTaskId 
+              ? { ...task, isLocked: false } 
+              : task
+          )
+        );
+        
+        // Unlock the next boss as well
+        const nextBossId = bossId + 10;
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === nextBossId 
+              ? { ...task, isLocked: false } 
+              : task
+          )
+        );
+        
+        // Update current task to the next tier's first task
+        setCurrentTaskId(nextTierFirstTaskId);
+      }
       
-      const bossTier = Math.floor(bossId / 10) - 1;
       if (userTier === bossTier) {
         setUserTier(prevTier => prevTier + 1);
       }
@@ -159,6 +200,12 @@ const CourseDetail = () => {
         title: "Boss Defeated!",
         description: `You gained ${xpGained} XP and ${pointsGained} points and unlocked the next tier!`,
         variant: "default",
+      });
+    } else {
+      toast({
+        title: "Boss Fight Failed",
+        description: "You need to score higher to defeat the boss!",
+        variant: "destructive",
       });
     }
   };
@@ -181,7 +228,7 @@ const CourseDetail = () => {
   
   const handleBossFight = () => {
     const nextBoss = tasks
-      .filter(task => task.hasOwnProperty('questions'))
+      .filter(task => 'questions' in task && !task.isLocked)
       .find(boss => !boss.isDefeated);
     
     if (nextBoss) {
@@ -195,6 +242,12 @@ const CourseDetail = () => {
           variant: "destructive",
         });
       }
+    } else {
+      toast({
+        title: "No Boss Available",
+        description: "You've defeated all available bosses!",
+        variant: "default",
+      });
     }
   };
   
@@ -263,7 +316,7 @@ const CourseDetail = () => {
                 </div>
                 
                 {tasks
-                  .filter(task => task.tier === 0 && !task.hasOwnProperty('questions'))
+                  .filter(task => task.tier === 0 && !('questions' in task))
                   .map((task, index) => (
                     <React.Fragment key={task.id}>
                       <div 
@@ -290,7 +343,6 @@ const CourseDetail = () => {
               <div className="flex flex-col items-center ml-20 mt-4">
                 <div className="bronze-path w-2 h-12"></div>
                 <div 
-                  id={`boss-${10}`}
                   className="mt-4"
                 >
                   <BossNode 
@@ -298,7 +350,7 @@ const CourseDetail = () => {
                     tier="bronze"
                     title="Unblooded"
                     isDefeated={tasks.find(t => t.id === 10)?.isDefeated || false}
-                    questions={tasks.find(t => t.id === 10)?.questions || []}
+                    questions={tasks.find(t => t.id === 10 && 'questions' in t)?.questions || []}
                     onComplete={handleBossComplete}
                   />
                 </div>
@@ -309,7 +361,7 @@ const CourseDetail = () => {
               <h2 className="text-3xl font-bold text-yellow-400 mb-8">Warborn Path</h2>
               <div className="flex items-center">
                 {tasks
-                  .filter(task => task.tier === 1 && !task.hasOwnProperty('questions'))
+                  .filter(task => task.tier === 1 && !('questions' in task))
                   .map((task, index) => (
                     <React.Fragment key={task.id}>
                       <div 
@@ -336,7 +388,6 @@ const CourseDetail = () => {
               <div className="flex flex-col items-center ml-20 mt-4">
                 <div className="iron-path w-2 h-12"></div>
                 <div 
-                  id={`boss-${20}`}
                   className="mt-4"
                 >
                   <BossNode 
@@ -344,7 +395,7 @@ const CourseDetail = () => {
                     tier="iron"
                     title="Warborn"
                     isDefeated={tasks.find(t => t.id === 20)?.isDefeated || false}
-                    questions={tasks.find(t => t.id === 20)?.questions || []}
+                    questions={tasks.find(t => t.id === 20 && 'questions' in t)?.questions || []}
                     onComplete={handleBossComplete}
                   />
                 </div>
@@ -355,7 +406,7 @@ const CourseDetail = () => {
               <h2 className="text-3xl font-bold text-yellow-400 mb-8">Doomseeker Path</h2>
               <div className="flex items-center">
                 {tasks
-                  .filter(task => task.tier === 2 && !task.hasOwnProperty('questions'))
+                  .filter(task => task.tier === 2 && !('questions' in task))
                   .map((task, index) => (
                     <React.Fragment key={task.id}>
                       <div 
@@ -382,7 +433,6 @@ const CourseDetail = () => {
               <div className="flex flex-col items-center ml-20 mt-4">
                 <div className="steel-path w-2 h-12"></div>
                 <div 
-                  id={`boss-${30}`}
                   className="mt-4"
                 >
                   <BossNode 
@@ -390,7 +440,7 @@ const CourseDetail = () => {
                     tier="steel"
                     title="Doomseeker"
                     isDefeated={tasks.find(t => t.id === 30)?.isDefeated || false}
-                    questions={tasks.find(t => t.id === 30)?.questions || []}
+                    questions={tasks.find(t => t.id === 30 && 'questions' in t)?.questions || []}
                     onComplete={handleBossComplete}
                   />
                 </div>
@@ -401,7 +451,7 @@ const CourseDetail = () => {
               <h2 className="text-3xl font-bold text-yellow-400 mb-8">Deathless Path</h2>
               <div className="flex items-center">
                 {tasks
-                  .filter(task => task.tier === 3 && !task.hasOwnProperty('questions'))
+                  .filter(task => task.tier === 3 && !('questions' in task))
                   .map((task, index) => (
                     <React.Fragment key={task.id}>
                       <div 
@@ -428,7 +478,6 @@ const CourseDetail = () => {
               <div className="flex flex-col items-center ml-20 mt-4">
                 <div className="obsidian-path w-2 h-12"></div>
                 <div 
-                  id={`boss-${40}`}
                   className="mt-4"
                 >
                   <BossNode 
@@ -436,7 +485,7 @@ const CourseDetail = () => {
                     tier="obsidian"
                     title="Deathless"
                     isDefeated={tasks.find(t => t.id === 40)?.isDefeated || false}
-                    questions={tasks.find(t => t.id === 40)?.questions || []}
+                    questions={tasks.find(t => t.id === 40 && 'questions' in t)?.questions || []}
                     onComplete={handleBossComplete}
                   />
                 </div>
@@ -447,7 +496,7 @@ const CourseDetail = () => {
               <h2 className="text-3xl font-bold text-yellow-400 mb-8">Thrice-Forged Path</h2>
               <div className="flex items-center">
                 {tasks
-                  .filter(task => task.tier === 4 && !task.hasOwnProperty('questions'))
+                  .filter(task => task.tier === 4 && !('questions' in task))
                   .map((task, index) => (
                     <React.Fragment key={task.id}>
                       <div 
@@ -474,7 +523,6 @@ const CourseDetail = () => {
               <div className="flex flex-col items-center ml-20 mt-4">
                 <div className="gold-path w-2 h-12"></div>
                 <div 
-                  id={`boss-${50}`}
                   className="mt-4"
                 >
                   <BossNode 
@@ -482,7 +530,7 @@ const CourseDetail = () => {
                     tier="gold"
                     title="Thrice-Forged"
                     isDefeated={tasks.find(t => t.id === 50)?.isDefeated || false}
-                    questions={tasks.find(t => t.id === 50)?.questions || []}
+                    questions={tasks.find(t => t.id === 50 && 'questions' in t)?.questions || []}
                     onComplete={handleBossComplete}
                   />
                 </div>

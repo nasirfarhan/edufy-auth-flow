@@ -47,7 +47,7 @@ const SpecialQuest = ({ nextBossLevel, onBossFight }: SpecialQuestProps) => {
           <img 
             src={getBossImage()} 
             alt={`${nextBossLevel} Boss`} 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover"
           />
           <div className="absolute -top-3 -right-3 bg-red-600 w-8 h-8 rounded-full flex items-center justify-center">
             <Sword size={16} className="text-white transform rotate-45" />

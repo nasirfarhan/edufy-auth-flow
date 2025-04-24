@@ -103,6 +103,7 @@ const BossNode = ({
       <div 
         className={`boss-node ${tierColors[tier]} ${isDefeated ? 'task-node-completed' : ''}`}
         onClick={handleNodeClick}
+        id={`boss-${id}`}
       >
         {isDefeated ? (
           <Trophy className="text-yellow-400 h-10 w-10" />
@@ -111,14 +112,14 @@ const BossNode = ({
             <img 
               src={getBossImage()} 
               alt={`${title} Boss`} 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
         )}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="boss-dialog max-w-2xl">
+        <DialogContent className="boss-dialog max-w-2xl bg-[#1a2c3d] border-blue-800 text-white">
           <DialogTitle className="text-yellow-400 text-2xl flex items-center gap-2">
             <Sword className="text-red-500" />
             {title} - Boss Fight
